@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.androidpn.client;
+package org.androidpn.clientw;
 
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.packet.Packet;
@@ -31,9 +31,9 @@ public class NotificationPacketListener implements PacketListener {
     private static final String LOGTAG = LogUtil
             .makeLogTag(NotificationPacketListener.class);
 
-    private final XmppManager xmppManager;
+    private final XmppManagerw xmppManager;
 
-    public NotificationPacketListener(XmppManager xmppManager) {
+    public NotificationPacketListener(XmppManagerw xmppManager) {
         this.xmppManager = xmppManager;
     }
 

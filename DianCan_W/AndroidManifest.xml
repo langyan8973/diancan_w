@@ -31,17 +31,17 @@
         <activity android:name="org.androidpn.client.NotificationDetailsActivity"
 			android:label="Notification Details">
 		</activity>
-		<activity android:name="org.androidpn.client.NotificationSettingsActivity"
+		<activity android:name="org.androidpn.clientw.NotificationSettingsActivity"
 			android:label="Notification Settings">
 		</activity>
 		<service android:enabled="true"
-			android:name="org.androidpn.client.NotificationService"
+			android:name="org.androidpn.clientw.NotificationService"
 			android:label="NotificationService">
 			<intent-filter>
 				<action android:name="org.androidpn.client.NotificationService" />
 			</intent-filter>
 		</service>
-		<receiver android:name="org.androidpn.client.BootReceiver">  
+		<receiver android:name="org.androidpn.clientw.BootReceiver">  
             <intent-filter>  
                 <action android:name="android.intent.action.BOOT_COMPLETED" />  
                 <action android:name="android.intent.action.PACKAGE_ADDED" />

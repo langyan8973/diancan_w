@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.androidpn.client.Constants;
+import org.androidpn.clientw.Constants;
 
 import com.declarew.Declare_w;
 import com.modelw.MessContent;

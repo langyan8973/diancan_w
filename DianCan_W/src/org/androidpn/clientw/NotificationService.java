@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.androidpn.client;
+package org.androidpn.clientw;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -64,7 +64,7 @@ public class NotificationService extends Service {
 
     private TaskTracker taskTracker;
 
-    private XmppManager xmppManager;
+    private XmppManagerw xmppManager;
 
     private SharedPreferences sharedPrefs;
 
@@ -112,7 +112,7 @@ public class NotificationService extends Service {
         }
         Log.d(LOGTAG, "deviceId=" + deviceId);
 
-        xmppManager = new XmppManager(this);
+        xmppManager = new XmppManagerw(this);
 
         taskSubmitter.submit(new Runnable() {
             public void run() {
@@ -165,7 +165,7 @@ public class NotificationService extends Service {
         return taskTracker;
     }
 
-    public XmppManager getXmppManager() {
+    public XmppManagerw getXmppManager() {
         return xmppManager;
     }
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.androidpn.client;
+package org.androidpn.clientw;
 
 import android.util.Log;
 
@@ -27,11 +27,11 @@ public class ReconnectionThread extends Thread {
     private static final String LOGTAG = LogUtil
             .makeLogTag(ReconnectionThread.class);
 
-    private final XmppManager xmppManager;
+    private final XmppManagerw xmppManager;
 
     private int waiting;
 
-    ReconnectionThread(XmppManager xmppManager) {
+    ReconnectionThread(XmppManagerw xmppManager) {
         this.xmppManager = xmppManager;
         this.waiting = 0;
     }

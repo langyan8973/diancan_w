@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.androidpn.client;
+package org.androidpn.clientw;
 
 import org.jivesoftware.smack.ConnectionListener;
 
@@ -29,9 +29,9 @@ public class PersistentConnectionListener implements ConnectionListener {
     private static final String LOGTAG = LogUtil
             .makeLogTag(PersistentConnectionListener.class);
 
-    private final XmppManager xmppManager;
+    private final XmppManagerw xmppManager;
 
-    public PersistentConnectionListener(XmppManager xmppManager) {
+    public PersistentConnectionListener(XmppManagerw xmppManager) {
         this.xmppManager = xmppManager;
     }
 

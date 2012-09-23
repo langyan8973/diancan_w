@@ -1,4 +1,4 @@
-package org.androidpn.client;
+package org.androidpn.clientw;
 
 
 import android.content.BroadcastReceiver;

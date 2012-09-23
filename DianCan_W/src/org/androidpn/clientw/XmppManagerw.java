@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.androidpn.client;
+package org.androidpn.clientw;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,9 +46,9 @@ import android.util.Log;
  * 
  * @author Sehwan Noh (devnoh@gmail.com)
  */
-public class XmppManager {
+public class XmppManagerw {
 
-    private static final String LOGTAG = LogUtil.makeLogTag(XmppManager.class);
+    private static final String LOGTAG = LogUtil.makeLogTag(XmppManagerw.class);
 
     private static final String XMPP_RESOURCE_NAME = "AndroidpnClient";
 
@@ -84,7 +84,7 @@ public class XmppManager {
 
     private Thread reconnection;
 
-    public XmppManager(NotificationService notificationService) {
+    public XmppManagerw(NotificationService notificationService) {
         context = notificationService;
         taskSubmitter = notificationService.getTaskSubmitter();
         taskTracker = notificationService.getTaskTracker();
@@ -121,7 +121,7 @@ public class XmppManager {
         Log.d(LOGTAG, "terminatePersistentConnection()...");
         Runnable runnable = new Runnable() {
 
-            final XmppManager xmppManager = XmppManager.this;
+            final XmppManagerw xmppManager = XmppManagerw.this;
 
             public void run() {
                 if (xmppManager.isConnected()) {
@@ -280,10 +280,10 @@ public class XmppManager {
      */
     private class ConnectTask implements Runnable {
 
-        final XmppManager xmppManager;
+        final XmppManagerw xmppManager;
 
         private ConnectTask() {
-            this.xmppManager = XmppManager.this;
+            this.xmppManager = XmppManagerw.this;
         }
 
         public void run() {
@@ -329,10 +329,10 @@ public class XmppManager {
      */
     private class RegisterTask implements Runnable {
 
-        final XmppManager xmppManager;
+        final XmppManagerw xmppManager;
 
         private RegisterTask() {
-            xmppManager = XmppManager.this;
+            xmppManager = XmppManagerw.this;
         }
 
         public void run() {
@@ -411,10 +411,10 @@ public class XmppManager {
      */
     private class LoginTask implements Runnable {
 
-        final XmppManager xmppManager;
+        final XmppManagerw xmppManager;
 
         private LoginTask() {
-            this.xmppManager = XmppManager.this;
+            this.xmppManager = XmppManagerw.this;
         }
 
         public void run() {

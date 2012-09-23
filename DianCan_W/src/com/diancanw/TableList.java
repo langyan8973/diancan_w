@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.androidpn.client.Constants;
-import org.androidpn.client.ServiceManager;
+import org.androidpn.clientw.Constants;
+import org.androidpn.clientw.ServiceManager;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 
