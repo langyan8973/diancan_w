@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, main!</string>
+    <string name="app_name">DianCan_W</string>
+	<string name="db_folder">/sdcard/ChiHuoPro</string>
+    <string name="img_folder">/sdcard/ChiHuoPro/MenuImg</string>
+    <string name="url_service">192.168.1.107:8080/ChihuoService/rest/</string>
+    <string name="image_service">192.168.1.107:8080/MenuImages/</string>
+    <!-- 消费总计信息 -->
+    <string name="infostr_sum">合计：</string>
+    <!-- 提交按钮文字 -->
+    <string name="btnstr_commit">提交</string>
+    <!-- 结账按钮文字 -->
+    <string name="btnstr_over">结账</string>
+</resources>
