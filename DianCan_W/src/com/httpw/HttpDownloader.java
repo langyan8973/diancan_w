@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -27,15 +28,22 @@ import java.util.Set;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,6 +51,7 @@ import org.json.JSONObject;
 
 import com.modelw.Order;
 import com.modelw.OrderItem;
+import com.utilsw.FileUtils;
 
 import android.R.integer;
 import android.graphics.Bitmap;
@@ -57,15 +66,22 @@ public class HttpDownloader {
 	 * @param urlStr
 	 * @return
 	 */
-	public static String getString(String urlStr) {
+	public static String getString(String urlStr,String token) {
 		StringBuffer sb = new StringBuffer();
 		if(client==null)
 		{
 			client= new DefaultHttpClient();
 		}
 		HttpGet get = new HttpGet(urlStr);
-		get.addHeader("accept", "application/json;charset=UTF-8");
-		get.addHeader("Accept-Charset", "utf-8");
+		
+		if(token!=null)
+		{
+			get.addHeader("Authorization", token);
+		}
+		else {
+			get.addHeader("accept", "application/json;charset=UTF-8");
+			get.addHeader("Accept-Charset", "utf-8");
+		}
 		try {
 			HttpResponse response = client.execute(get);
 
@@ -79,6 +95,7 @@ public class HttpDownloader {
 				while ((line = buffer.readLine()) != null) {
 					sb.append(line);
 				}
+				inputStream.close();
 				return sb.toString();
 			} else {
 				// TODO 返回错误信息
@@ -118,17 +135,17 @@ public class HttpDownloader {
 		return null;
 	}
 	//启用缓存
-//	public static void enableHttpResponseCache() {
-//	  try {
-//	    long httpCacheSize = 50 * 1024 * 1024; // 10 MiB
-//	    File httpCacheDir = new File(FileUtils.cacheDir.getAbsolutePath(), "http");
-//	    Class.forName("android.net.http.HttpResponseCache")
-//	         .getMethod("install", File.class, long.class)
-//	         .invoke(null, httpCacheDir, httpCacheSize);
-//	  } catch (Exception httpResponseCacheNotAvailable) {
-//		  ResponseCache.setDefault(new MyResponseCache2());
-//	  }
-//	}
+	public static void enableHttpResponseCache() {
+	  try {
+	    long httpCacheSize = 50 * 1024 * 1024; // 10 MiB
+	    File httpCacheDir = new File(FileUtils.cacheDir.getAbsolutePath(), "http");
+	    Class.forName("android.net.http.HttpResponseCache")
+	         .getMethod("install", File.class, long.class)
+	         .invoke(null, httpCacheDir, httpCacheSize);
+	  } catch (Exception httpResponseCacheNotAvailable) {
+		  ResponseCache.setDefault(new MyResponseCache2());
+	  }
+	}
 
 	/***
 	 * 提交订单
@@ -208,19 +225,15 @@ public class HttpDownloader {
 	}
 	
 		//开台
-		public static String submitOrder(String rootUrl,int tid,int number,String username) throws Throwable {
-			JSONObject object = new JSONObject();
-			object.put("tid", tid);
-			object.put("number", number);
-			object.put("username", username);
+		public static String submitOrder(String rootUrl,int tid,int number,int rid,String token) throws Throwable {
 			
-			StringEntity entity = new StringEntity(object.toString(), "UTF-8");
-			entity.setContentType("application/json;charset=UTF-8");
-			entity.setContentEncoding("UTF-8");
-			
-			HttpPost post = new HttpPost(rootUrl + "orders");
+			MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+			entity.addPart("did", new StringBody(tid+""));
+			entity.addPart("number", new StringBody(number+""));			
+			String rUrl=rootUrl + "restaurants/"+rid+"/orders";
+			HttpPost post = new HttpPost(rUrl);
+			post.addHeader("Authorization", token);
 			post.setEntity(entity);
-			post.setHeader("Content-Type", "application/json;charset=UTF-8");
 			
 			HttpClientParams.setRedirecting(post.getParams(), false);
 			
@@ -271,6 +284,56 @@ public class HttpDownloader {
 			}
 			
 		}
+		
+		public static String ChangeOrderItemStatus(String reqString) throws Throwable
+		{
+			
+			HttpPost post = new HttpPost(reqString);
+			post.setHeader("Content-Type", "application/json;charset=UTF-8");
+			
+			HttpClientParams.setRedirecting(post.getParams(), true);
+			
+			HttpResponse response = client.execute(post);
+			HttpEntity responseEntity = response.getEntity();
+			String jsonString=parseContent(responseEntity.getContent());
+			
+			if (response.getStatusLine().getStatusCode() == 200) {
+				return jsonString;
+			}
+			else {
+				throw new Exception(jsonString);
+			}
+		}
+		
+		public static ArrayList<String> UserLogin(int id,String name,String password,String strurl) throws Throwable{ 
+			
+			if(client==null)
+			{
+				client= new DefaultHttpClient();
+			}
+			  HttpPost httppost = new HttpPost(strurl); 
+			  List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2); 
+			   nameValuePairs.add(new BasicNameValuePair("restaurant", id+""));
+			   nameValuePairs.add(new BasicNameValuePair("username", name)); 
+			   nameValuePairs.add(new BasicNameValuePair("password", password)); 
+	
+			   httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs)); 
+	
+			   HttpResponse response; 
+			   response=client.execute(httppost); 
+			   HttpEntity responseEntity = response.getEntity();
+			   ArrayList<String> mList=new ArrayList<String>();
+			   String auth = response.getFirstHeader("Authorization").getValue();
+			   String jsonString=parseContent(responseEntity.getContent());
+			   mList.add(auth);
+			   mList.add(jsonString);
+				if (response.getStatusLine().getStatusCode() == 200) {
+					return mList;
+				}
+				else {
+					throw new Exception(jsonString);
+				} 
+		} 
 		
 		private static String parseContent(InputStream stream) throws IOException {
 			StringBuilder sb = new StringBuilder();

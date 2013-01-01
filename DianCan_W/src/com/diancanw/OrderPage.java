@@ -20,6 +20,7 @@ import com.modelw.OrderItem;
 import com.modelw.Order;
 import com.utilsw.MenuUtils;
 
+import android.R.integer;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -54,7 +55,7 @@ import com.utilsw.JsonUtils;
 import com.customw.ClassListViewWidget;
 import com.diancanw.R;
 
-public class TableW extends Activity {
+public class OrderPage extends Activity {
 	/***
 	 * 类成员变量声明
 	 */
@@ -80,7 +81,7 @@ public class TableW extends Activity {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.tablew);
+		setContentView(R.layout.orderpage);
 		
 		sumString=getResources().getString(R.string.infostr_sum);
 		rootLayout=(LinearLayout)findViewById(R.id.rootLayout);
@@ -137,7 +138,10 @@ public class TableW extends Activity {
 		super.onPause();
 		unregisterReceiver(receiver);
 	}
-    
+	
+    /***
+     * 初始化订单
+     */
     public void InitHashOrderItems()
     {
     	hashOrderItems.clear();
@@ -169,12 +173,17 @@ public class TableW extends Activity {
 			map.put("price", "¥ "+orderItem.getRecipe().getPrice());
 			String strCount=orderItem.getCount()+"";
 			map.put("count", strCount);
+			Integer kk=orderItem.getStatus();
+			map.put("status", kk);
 			Bitmap imgBitmap=HttpDownloader.getStream(MenuUtils.imageUrl+orderItem.getRecipe().getImage());
 			map.put("img", imgBitmap);
 			
 			hashList.add(map);
 		}
 	}
+	/**
+	 * 创建订单页面元素
+	 */
     private void CreateElements()
     {
     	String strKey;
@@ -193,6 +202,9 @@ public class TableW extends Activity {
     	sumTextView.setText(sumString+totalPrice);
     	
     }
+    /**
+     * 刷新订单页面元素
+     */
     private void  UpdateElement() {
     	if(mOrder==null)
     	{
@@ -262,6 +274,13 @@ public class TableW extends Activity {
     	
     	sumTextView.setText(sumString+totalPrice);
 	}
+    
+    /**
+     * 创建列表视图
+     * @param orderItemlist
+     * @param strtitle
+     * @return
+     */
     private ClassListViewWidget CreateListWidget(List<OrderItem> orderItemlist,String strtitle)
     {
     	ArrayList<HashMap<String, Object>> hashList=new ArrayList<HashMap<String, Object>>();
@@ -279,6 +298,10 @@ public class TableW extends Activity {
     }
 
 
+    /**
+     * 设置列表高度
+     * @param lv
+     */
     public void setListViewHeight(ListView lv) {
         ListAdapter la = lv.getAdapter();
         if(null == la) {
@@ -299,6 +322,9 @@ public class TableW extends Activity {
         lv.setLayoutParams(lp);
     }
     
+    /**
+     * 向服务器发送请求
+     */
     public void PostToServer()
     {
     	new Thread(){
@@ -319,14 +345,27 @@ public class TableW extends Activity {
         		} catch (Throwable e) {
         			e.printStackTrace();
         			//自定义的错误，在界面上显示
-        			Toast toast = Toast.makeText(TableW.this, e.getMessage(), Toast.LENGTH_SHORT); 
+        			Toast toast = Toast.makeText(OrderPage.this, e.getMessage(), Toast.LENGTH_SHORT); 
         			toast.show();
         		}
             }
         }.start();
     }
-
     
+    /**
+     * 显示错误信息
+     * @param strMess
+     */
+    public void ShowError(String strMess) {
+		Toast toast = Toast.makeText(OrderPage.this, strMess, Toast.LENGTH_SHORT); 
+        toast.show();
+	}
+    
+    /**
+     * 点击结账按钮
+     * @author liuyan
+     *
+     */
     public class OverBtnOnclick implements View.OnClickListener{
 
 		@Override
@@ -351,12 +390,17 @@ public class TableW extends Activity {
 		}    	
     }
     
+    /**
+     * 点击刷新按钮
+     * @author liuyan
+     *
+     */
     class FlashOnClick implements OnClickListener{
 
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
-			String jsonString = HttpDownloader.getString(MenuUtils.initUrl+ "orders/" +mOrder.getId() );
+			String jsonString = HttpDownloader.getString(MenuUtils.initUrl+ "orders/" +mOrder.getId(),null);
 			final Order order=JsonUtils.ParseJsonToOrder(jsonString);
 			mOrder=order;
 			dicWidgets.clear();
@@ -368,6 +412,12 @@ public class TableW extends Activity {
     	
     }
     
+    /**
+     * 根据id获取订单项
+     * @param id
+     * @param order
+     * @return
+     */
     public OrderItem GetItemById(int id,Order order)
 	{
 		OrderItem orderItem=null;
@@ -387,6 +437,11 @@ public class TableW extends Activity {
 		return orderItem;
 	}
     
+    /**
+     * 列表数据源适配器
+     * @author liuyan
+     *
+     */
     public class TableListAdapter extends SimpleAdapter {
 
 		public ArrayList<HashMap<String, Object>> getmItemList() {
@@ -441,15 +496,35 @@ public class TableW extends Activity {
 	        OrderItem orderItem=TableListAdapter.this.orderItemList.get(position);
 	        Map<String, Object> mMap=TableListAdapter.this.mItemList.get(position);
             int mCount=Integer.parseInt(mMap.get("count").toString());
-
+            
+            if(mMap.get("status")!=null)
+            {
+            	imgadd.setVisibility(View.INVISIBLE);
+            }
+            else {
+            	imgadd.setVisibility(View.VISIBLE);
+			}
 	        imgadd.setTag(position);
 	        imgadd.setOnClickListener(new View.OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
-//					int position = Integer.parseInt(v.getTag().toString());
-//					OrderItem oItem=TableListAdapter.this.orderItemList.get(position);
+					int position = Integer.parseInt(v.getTag().toString());
+					OrderItem oItem=TableListAdapter.this.orderItemList.get(position);
+					try {
+						String jsString=HttpDownloader.ChangeOrderItemStatus(MenuUtils.initUrl+"orders/"+mOrder.getId()+"/"+oItem.getId());
+						Order order=JsonUtils.ParseJsonToOrder(jsString);
+						mOrder=order;
+						dicWidgets.clear();
+						hashOrderItems.clear();
+				    	rootLayout.removeAllViews();
+						InitHashOrderItems();
+						CreateElements();
+					} catch (Throwable e) {
+						// TODO Auto-generated catch block
+						ShowError(e.getMessage());
+					}
 //					sendId=oItem.getRecipe().getId();
 //		            sendCount=1;
 //					
@@ -474,7 +549,7 @@ public class TableW extends Activity {
 		}
 	}
     
-    /*
+    /**
      * 通知的接收器，只接收点菜消息
      */
     class NotifiReceiver extends BroadcastReceiver{
@@ -497,7 +572,7 @@ public class TableW extends Activity {
 
                 if(notificationTitle.equals("11")&&notificationMessage.equals(mOrder.getId().toString()))
                 {
-                	String jsonString = HttpDownloader.getString(MenuUtils.initUrl+ "orders/" +mOrder.getId() );
+                	String jsonString = HttpDownloader.getString(MenuUtils.initUrl+ "orders/" +mOrder.getId() ,null);
         			final Order order=JsonUtils.ParseJsonToOrder(jsonString);
         			mOrder=order;
         			dicWidgets.clear();

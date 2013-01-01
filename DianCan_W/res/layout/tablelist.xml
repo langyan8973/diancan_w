@@ -33,7 +33,7 @@
 	        android:layout_centerVertical="true"
 	        android:layout_toRightOf="@+id/TxtDeskType"
 	        android:scaleType="fitXY"
-	        android:src="@drawable/ic_launcher"
+	        android:src="@drawable/list"
 	        />
     </RelativeLayout> 
 	<RelativeLayout android:id="@+id/contentFrame"

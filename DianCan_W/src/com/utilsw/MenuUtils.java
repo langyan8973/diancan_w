@@ -2,6 +2,7 @@ package com.utilsw;
 
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -15,6 +16,7 @@ import com.modelw.DeskType;
 import com.modelw.MessContent;
 import com.modelw.Recipe;
 
+import android.R.integer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -34,6 +36,12 @@ public class MenuUtils {
 	public static String Service_1="加餐具";
 	public static String Service_2="加水";
 	public static String Service_3="服务员";
+	
+	public static ArrayList<String> Login(int code,String name,String password) throws Throwable{
+		
+		ArrayList<String> arr=HttpDownloader.UserLogin(code, name, password, initUrl+"wlogin");
+		return arr;
+	}
 
 	/***
 	 * 获取所有菜类别
@@ -41,7 +49,7 @@ public class MenuUtils {
 	 */
 	public static List<Category> getAllCategory() {
 		String urlString = initUrl + "categories";
-		String jsonStr = HttpDownloader.getString(urlString);
+		String jsonStr = HttpDownloader.getString(urlString,null);
 		System.out.println(jsonStr);
 
 		Type objType = new TypeToken<List<Category>>() {
@@ -60,7 +68,7 @@ public class MenuUtils {
 	public static List<Recipe> getRecipesByCategory(Integer id) {
 		String urlString = initUrl + "categories/" + id;
 
-		String jsonStr = HttpDownloader.getString(urlString);
+		String jsonStr = HttpDownloader.getString(urlString,null);
 
 		Type objType = new TypeToken<List<Recipe>>() {
 		}.getType();
@@ -77,7 +85,7 @@ public class MenuUtils {
 	public static List<Desk> getAllDesks() {
 		String urlString = initUrl + "desks";
 
-		String jsonStr = HttpDownloader.getString(urlString);
+		String jsonStr = HttpDownloader.getString(urlString,null);
 
 		Type objType = new TypeToken<List<Desk>>() {
 		}.getType();
@@ -91,11 +99,11 @@ public class MenuUtils {
 	 * 获取所有餐桌分类
 	 * @return
 	 */
-	public static List<DeskType> getDeskTypes()
+	public static List<DeskType> getDeskTypes(int id)
 	{
-		String urlString = initUrl + "desktypes";
+		String urlString = initUrl + "restaurants/"+id+"/desktypes";
 
-		String jsonStr = HttpDownloader.getString(urlString);
+		String jsonStr = HttpDownloader.getString(urlString,null);
 
 		Type objType = new TypeToken<List<DeskType>>() {
 		}.getType();
@@ -110,11 +118,11 @@ public class MenuUtils {
 	 * @param id
 	 * @return
 	 */
-	public static List<Desk> getDesksByTid(int id)
+	public static List<Desk> getDesksByTid(int id,int rid)
 	{
-		String urlString = initUrl + "desktypes/"+id;
+		String urlString = initUrl + "restaurants/"+rid+"/desks?tid="+id;
 
-		String jsonStr = HttpDownloader.getString(urlString);
+		String jsonStr = HttpDownloader.getString(urlString,null);
 
 		Type objType = new TypeToken<List<Desk>>() {
 		}.getType();
@@ -129,7 +137,7 @@ public class MenuUtils {
 		if (strdate != "") {
 			urlString += "/" + strdate;
 		}
-		String jsonStr = HttpDownloader.getString(urlString);
+		String jsonStr = HttpDownloader.getString(urlString,null);
 		// System.out.println(jsonStr);
 
 		Type objType = new TypeToken<AllDomain>() {

@@ -16,6 +16,7 @@ import org.json.JSONException;
 import com.animationw.HistoryRotateAnim;
 import com.customw.CategoryListAdapter;
 import com.customw.CustomViewBinder;
+import com.declarew.Declare_w;
 import com.httpw.HttpDownloader;
 import com.modelw.Desk;
 import com.modelw.DeskType;
@@ -99,6 +100,7 @@ public class TableList extends Activity {
 	
 	private final Handler mHandler = new Handler();
 	EditText input;
+	Declare_w m_Declare;
 	
 	private Handler httpHandler = new Handler() {  
         public void handleMessage (Message msg) {//此方法在ui线程运行   
@@ -116,9 +118,10 @@ public class TableList extends Activity {
             case 3:
             	String jsString=msg.obj.toString();
             	ResponseTable(jsString);
+            	break;
             case 4:
             	String strJs=msg.obj.toString();
-            	ResponseOrderByCode(strJs);
+            	ResponseOrder(strJs);
             	break;
             }  
         }  
@@ -184,6 +187,7 @@ public class TableList extends Activity {
 		
 		clearImg=(ImageView)searchLayout.findViewById(R.id.ImgClear);
 		clearImg.setOnClickListener(new ClearOnClick());
+		clearImg.setVisibility(View.INVISIBLE);
 		
 		mListView=new ListView(this);
 		int cHeight=sHeight;
@@ -222,17 +226,8 @@ public class TableList extends Activity {
   		System.out.println("dp高度："+DisplayUtil.DPHEIGHT);
         
         sWidth = DisplayUtil.dip2px(DisplayUtil.DPWIDTH);
-		sHeight=DisplayUtil.dip2px(DisplayUtil.DPHEIGHT-108);
-		
-		MenuUtils.initUrl="http://"+getResources().getString(R.string.url_service);
-        MenuUtils.updateUrl="http://"+getResources().getString(R.string.url_service);
-        MenuUtils.imageUrl="http://"+getResources().getString(R.string.image_service);
-		
-		// Start the service
-	    ServiceManager serviceManager = new ServiceManager(this);
-	    serviceManager.setNotificationIcon(R.drawable.notification);
-	    serviceManager.startService();
-	    
+		sHeight=DisplayUtil.dip2px(DisplayUtil.DPHEIGHT-108);	
+		m_Declare=(Declare_w)this.getApplicationContext();
 	}
 	
 	/***
@@ -245,7 +240,7 @@ public class TableList extends Activity {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				types=MenuUtils.getDeskTypes();
+				types=MenuUtils.getDeskTypes(m_Declare.loginResponse.getRestaurant().getId());
 				if(types==null||types.size()==0)
 				{
 					httpHandler.obtainMessage(0,"获取餐桌类别失败！").sendToTarget();
@@ -310,7 +305,7 @@ public class TableList extends Activity {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				deskList=MenuUtils.getDesksByTid(selectDeskType.getId());
+				deskList=MenuUtils.getDesksByTid(selectDeskType.getId(),m_Declare.loginResponse.getRestaurant().getId());
 				if(deskList==null||deskList.size()==0)
 				{
 					httpHandler.obtainMessage(0,"获取餐桌列表失败").sendToTarget();
@@ -453,15 +448,27 @@ public class TableList extends Activity {
 			}
   			map.put("simg", bmp);
   			Bitmap duigouBitmap=null;
-  			if(deskInfo.getStatus()!=null)
+  			if(deskInfo.getOrderStatus()!=null)
   			{
-  				map.put("status", 1);
-  				map.put("code", deskInfo.getCode());
-  				duigouBitmap=MenuUtils.readBitMap(this, R.drawable.duigou, 1);
+  				if(deskInfo.getOrderStatus()==1)
+  				{
+  					map.put("status", 1);
+  	  				map.put("code", deskInfo.getCode());
+  	  				map.put("oid", deskInfo.getOid());
+  	  				duigouBitmap=MenuUtils.readBitMap(this, R.drawable.duigou, 1);
+  				}
+  				else if(deskInfo.getOrderStatus()==3)
+  				{
+  					map.put("status", 3);
+  	  				map.put("code", deskInfo.getCode());
+  	  				map.put("oid", deskInfo.getOid());
+  	  				duigouBitmap=MenuUtils.readBitMap(this, R.drawable.duihao, 1);
+  				}
   			}
   			else {
   				map.put("status", null);
   				map.put("code", null);
+  				map.put("oid", null);
   				duigouBitmap=Bitmap.createBitmap(30, 30, Bitmap.Config.ARGB_8888);
 			}
   			map.put("duigou", duigouBitmap);
@@ -507,27 +514,6 @@ public class TableList extends Activity {
 		return saImageItems;
 	}
 	
-//	public void ToMyTable()
-//	{
-//		TableGroup parent = (TableGroup) getParent();
-//		LocalActivityManager manager = parent.getLocalActivityManager();
-//	    final LinearLayout contain = (LinearLayout) parent.findViewById(R.id.table_continer);
-//	    
-//	    Activity activity=manager.getCurrentActivity();
-//		Window w1=activity.getWindow();
-//		View v1=w1.getDecorView();
-//	    
-//		contain.removeAllViews();
-//		Intent in = new Intent(getParent(), MyTable.class);
-//		Window window = manager.startActivity("MyTable", in);
-//		
-//		View view=window.getDecorView();		
-//		contain.addView(view);
-//		LayoutParams params=(LayoutParams) view.getLayoutParams();
-//        params.width=LayoutParams.FILL_PARENT;
-//        params.height=LayoutParams.FILL_PARENT;
-//        view.setLayoutParams(params);
-//	}
 	
 	/***
 	 * 旋转切换效果
@@ -601,6 +587,11 @@ public class TableList extends Activity {
 		});
 		v1.startAnimation(sAnimation);
 	}
+	
+	/**
+	 * 显示错误信息
+	 * @param strMess
+	 */
 	public void ShowError(String strMess) {
 		mProgress.setVisibility(View.INVISIBLE);
 		Toast toast = Toast.makeText(TableList.this, strMess, Toast.LENGTH_SHORT); 
@@ -622,13 +613,14 @@ public class TableList extends Activity {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					if(sharedPrefs==null)
-					{
-						sharedPrefs = getSharedPreferences(Constants.SHARED_PREFERENCE_NAME,
-				                Context.MODE_PRIVATE);
-					}
-					String usernameString= sharedPrefs.getString(Constants.XMPP_USERNAME, "");
-					String resultString = HttpDownloader.submitOrder(MenuUtils.initUrl, id, count,usernameString);
+//					if(sharedPrefs==null)
+//					{
+//						sharedPrefs = getSharedPreferences(Constants.SHARED_PREFERENCE_NAME,
+//				                Context.MODE_PRIVATE);
+//					}
+//					String usernameString= sharedPrefs.getString(Constants.XMPP_USERNAME, "");
+					String resultString = HttpDownloader.submitOrder(MenuUtils.initUrl, id, count,
+							m_Declare.loginResponse.getRestaurant().getId(),m_Declare.loginResponse.getToken());
 					httpHandler.obtainMessage(3,resultString).sendToTarget();
 				} catch (Throwable e) {
 					// TODO Auto-generated catch block
@@ -657,6 +649,7 @@ public class TableList extends Activity {
   			selectedItem.put("duigou", duigouBitmap);
   			selectedItem.put("status", 1);
   			selectedItem.put("code", order.getCode());
+  			selectedItem.put("oid", order.getId());
   			gridSimpleAdapter.notifyDataSetChanged();
   			listSimpleAdapter.notifyDataSetChanged();
             
@@ -666,13 +659,16 @@ public class TableList extends Activity {
 		    	Desk dObj=iterator.next();
 		    	if(dObj.getId()==order.getDesk().getId())
 		    	{
-		    		dObj.setStatus(order.getStatus());
+		    		dObj.setOrderStatus(order.getStatus());
 		    		dObj.setCapacity(order.getNumber());
 		    		dObj.setCode(order.getCode());
+		    		dObj.setOid(order.getId());
 		    		break;
 		    	}
 		    }
-		    Intent intent=new Intent(this, TableW.class);
+		    
+		    
+		    Intent intent=new Intent(this, OrderPage.class);
 		    intent.putExtra("order", order);
 		    startActivity(intent);
 		} catch (Throwable e) {
@@ -722,7 +718,12 @@ public class TableList extends Activity {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					String resultString = HttpDownloader.getString(MenuUtils.initUrl+"orders/desk/"+codeString);
+					String resultString = HttpDownloader.getString(MenuUtils.initUrl+"orders/desk/"+codeString,m_Declare.loginResponse.getToken());
+					if(resultString==null)
+					{
+						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
+						return;
+					}
 					httpHandler.obtainMessage(4,resultString).sendToTarget();
 				} catch (Throwable e) {
 					// TODO Auto-generated catch block
@@ -732,14 +733,49 @@ public class TableList extends Activity {
 			}
 		}).start();
 	}
-	public void ResponseOrderByCode(String jsString)
+	
+	/**
+	 * 通过id获取订单
+	 * @param oidString
+	 */
+	public void RequestOrderByOid(final String oidString)
+	{
+		mProgress.setVisibility(View.VISIBLE);
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurant().getId()+"/orders/"+oidString,
+							m_Declare.loginResponse.getToken());
+					if(resultString==null)
+					{
+						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
+						return;
+					}
+					httpHandler.obtainMessage(4,resultString).sendToTarget();
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					httpHandler.obtainMessage(0,e.getMessage()).sendToTarget();
+				}
+			}
+		}).start();
+	}
+	
+	/**
+	 * 解析订单并跳转到订单页
+	 * @param jsString
+	 */
+	public void ResponseOrder(String jsString)
 	{
 		mProgress.setVisibility(View.INVISIBLE);
 		try {
 			System.out.println("resultString:"+jsString);
 			Order order=JsonUtils.ParseJsonToOrder(jsString);
 			
-		    Intent intent=new Intent(this, TableW.class);
+		    Intent intent=new Intent(this, OrderPage.class);
 		    intent.putExtra("order", order);
 		    startActivity(intent);
 		} catch (Throwable e) {
@@ -805,9 +841,11 @@ public class TableList extends Activity {
 			if(listVisibility)
 			{			
 				StartRotateAnimation(listLayout,gridLayout);
+				imgControl.setImageResource(R.drawable.image);
 			}
 			else {
 				StartBackRotateAnimation(gridLayout, listLayout);
+				imgControl.setImageResource(R.drawable.list);
 			}
 			listVisibility=!listVisibility;
 		}
@@ -831,10 +869,9 @@ public class TableList extends Activity {
 		    System.out.println("name:"+item.get("title"));
 		    if(item.get("status")!=null)
 		    {
-		    	String codeString=item.get("code").toString();
-		    	RequestOrderByCode(codeString);
-//		    	Toast toast = Toast.makeText(TableList.this,codeString, Toast.LENGTH_SHORT); 
-//	            toast.show();
+		    	String oidString=item.get("oid").toString();
+		    	RequestOrderByOid(oidString);
+
 	            return;
 		    }
 		    selectedItem=item;
@@ -873,10 +910,9 @@ public class TableList extends Activity {
 		    System.out.println("name:"+item.get("title"));
 		    if(item.get("status")!=null)
 		    {
-		    	String codeString=item.get("code").toString();
-		    	RequestOrderByCode(codeString);
-//		    	Toast toast = Toast.makeText(TableList.this,codeString, Toast.LENGTH_SHORT); 
-//	            toast.show();
+		    	String oidString=item.get("oid").toString();
+		    	RequestOrderByOid(oidString);
+
 	            return;
 		    }
 		    selectedItem=item;
@@ -963,6 +999,13 @@ public class TableList extends Activity {
 		@Override
 		public void onTextChanged(CharSequence s, int start, int before,
 				int count) {
+			if(count==0)
+			{
+				clearImg.setVisibility(View.INVISIBLE);
+			}
+			else {
+				clearImg.setVisibility(View.VISIBLE);
+			}
 			Search(s.toString());
 		}
 		
@@ -1009,8 +1052,8 @@ public class TableList extends Activity {
 			// TODO Auto-generated method stub
 			searchEditText.setText("");
 			//隐藏软键盘
-			InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
-			imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
+//			InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
+//			imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
 		}
 		
 	}

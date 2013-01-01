@@ -8,13 +8,22 @@ package com.modelw;
  */
 public class Desk implements java.io.Serializable {
 	private Integer id;
-	private String name;
-	private String description;
+	private String  name;
+	private String  description;
 	private Integer capacity;
-	private Integer status;
+	private Integer orderStatus;
 	private Integer tid;
-	private String code;
+	private String  code;
+	private Integer oid;
 
+
+	public Integer getOid() {
+		return oid;
+	}
+
+	public void setOid(Integer oid) {
+		this.oid = oid;
+	}
 
 	public String getCode() {
 		return code;
@@ -73,11 +82,13 @@ public class Desk implements java.io.Serializable {
 		this.capacity = capacity;
 	}
 
-	public Integer getStatus() {
-		return status;
+	public Integer getOrderStatus() {
+		return orderStatus;
 	}
 
-	public void setStatus(Integer status) {
-		this.status = status;
+	public void setOrderStatus(Integer orderStatus) {
+		this.orderStatus = orderStatus;
 	}
+
+	
 }

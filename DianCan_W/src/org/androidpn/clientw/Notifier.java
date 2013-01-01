@@ -17,6 +17,12 @@ package org.androidpn.clientw;
 
 import java.util.Random;
 
+import com.httpw.HttpDownloader;
+import com.modelw.Order;
+import com.utilsw.JsonUtils;
+import com.utilsw.MenuUtils;
+
+import android.R.integer;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -42,6 +48,10 @@ public class Notifier {
     private SharedPreferences sharedPrefs;
 
     private NotificationManager notificationManager;
+    
+    private Order mOrder;
+    
+    private int mOrderId;
 
     public Notifier(Context context) {
         this.context = context;
@@ -49,6 +59,16 @@ public class Notifier {
                 Constants.SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE);
         this.notificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
+    }
+    
+    public Notifier(Context context,int oid)
+    {
+    	this.context = context;
+        this.sharedPrefs = context.getSharedPreferences(
+                Constants.SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE);
+        this.notificationManager = (NotificationManager) context
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        mOrderId=oid;
     }
 
     public void notify(String notificationId, String apiKey, String title,
@@ -104,6 +124,20 @@ public class Notifier {
             intent.putExtra(Constants.NOTIFICATION_TITLE, title);
             intent.putExtra(Constants.NOTIFICATION_MESSAGE, message);
             intent.putExtra(Constants.NOTIFICATION_URI, uri);
+            if(title.equals("13"))
+            {
+            	String jsString=HttpDownloader.getString(MenuUtils.initUrl+ "orders/" +mOrderId ,null);
+            	if(jsString.equals("")||jsString==null)
+            	{
+            		Log.w(LOGTAG, "返回的订单为空.");
+            		return;
+            	}
+            	else {
+					mOrder=JsonUtils.ParseJsonToOrder(jsString);
+					intent.putExtra("order", mOrder);
+				}
+            }
+            
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);

@@ -15,12 +15,20 @@
  */
 package org.androidpn.clientw;
 
+import java.io.IOException;
 import java.util.UUID;
+
+import org.apache.http.client.ClientProtocolException;
+import org.json.JSONException;
 
 import com.declarew.Declare_w;
 import com.diancanw.ServicePage;
+import com.diancanw.OrderPage;
+import com.httpw.HttpDownloader;
 import com.modelw.MessContent;
+import com.modelw.Order;
 import com.modelw.ServiceMess;
+import com.utilsw.JsonUtils;
 import com.utilsw.MenuUtils;
 
 import android.content.BroadcastReceiver;
@@ -120,9 +128,21 @@ public final class NotificationReceiver extends BroadcastReceiver {
             }
             else {
             	MessContent content=MenuUtils.getMessContentByjs(notificationMessage);
-            	Notifier notifier = new Notifier(context);
+//            	try {
+//					String jsString=HttpDownloader.GetOrderForm(MenuUtils.initUrl+ "orders/"+content.getOid());
+//				} catch (ClientProtocolException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (JSONException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+            	Notifier notifier = new Notifier(context,content.getOid());
                 notifier.notify(notificationId, notificationApiKey,
-                        notificationTitle, content.getName()+"要求结账", notificationUri,NotificationDetailsActivity.class);
+                        notificationTitle, content.getName()+"要求结账", notificationUri,OrderPage.class);
 			}
             
         }

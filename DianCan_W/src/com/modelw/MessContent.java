@@ -5,6 +5,7 @@ public class MessContent implements java.io.Serializable {
 	 * 
 	 */
 	public int id;
+	public int oid;
 	public String name;
 	public MessContent()
 	{
@@ -22,4 +23,11 @@ public class MessContent implements java.io.Serializable {
 	public void setName(String name) {
 		this.name = name;
 	}
+	public int getOid() {
+		return oid;
+	}
+	public void setOid(int oid) {
+		this.oid = oid;
+	}
+	
 }

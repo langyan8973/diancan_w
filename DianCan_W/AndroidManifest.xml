@@ -19,14 +19,18 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
         
-        <activity android:name=".TableList">
+        <activity android:name=".InitPage">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".TableW"></activity>
+        <activity android:name=".LoginPage"></activity>
+        <activity android:name=".main"></activity>
+        <activity android:name=".TableList"></activity>
+        <activity android:name=".OrderList"></activity>
+        <activity android:name=".OrderPage"></activity>
         <activity android:name=".ServicePage"></activity>
         <activity android:name="org.androidpn.client.NotificationDetailsActivity"
 			android:label="Notification Details">
