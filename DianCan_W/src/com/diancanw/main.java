@@ -1,18 +1,33 @@
 package com.diancanw;
 
+import java.io.IOException;
+
+import org.apache.http.client.ClientProtocolException;
+
+import com.httpw.HttpDownloader;
+import com.modelw.Order;
+import com.utilsw.JsonUtils;
+import com.utilsw.MenuUtils;
+
+import android.app.AlertDialog;
 import android.app.TabActivity;
+import android.app.AlertDialog.Builder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class main extends TabActivity {
     /** Called when the activity is first created. */
@@ -131,5 +146,62 @@ public class main extends TabActivity {
         intent.setClass(main.this, OrderList.class);     
         View v=populateTabItem(R.drawable.shopping_cart, "订单");
 	    m_tabHost.addTab(m_tabHost.newTabSpec("menu2").setIndicator(v).setContent(intent));
-    } 
+    }
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		unregisterReceiver(receiver);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		menu.add(Menu.NONE, Menu.FIRST + 1, 5, "退出登录").setIcon(this.getResources().getDrawable(R.drawable.logout));
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch (item.getItemId()) {
+		case Menu.FIRST+1:
+			LogOut();
+			break;
+
+		default:
+			break;
+		}
+		return false;
+	} 
+	
+	public void LogOut(){
+		AlertDialog.Builder builder = new Builder(main.this);
+		builder.setMessage("确定要退出登录吗？");
+		builder.setTitle("提示");
+		builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				DeleteUserInfo();
+				Intent intent=new Intent(main.this,LoginPage.class);
+		        startActivity(intent);
+		        main.this.finish();
+			}
+		});
+		builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+		builder.create().show();
+	}
+	
+	public void DeleteUserInfo(){
+		this.deleteFile("Login.txt");
+	}
+	
+    
 }

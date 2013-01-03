@@ -6,12 +6,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
-import org.androidpn.clientw.ServiceManager;
+import cn.jpush.android.api.BasicPushNotificationBuilder;
+import cn.jpush.android.api.JPushInterface;
 
 import com.declarew.Declare_w;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.httpw.HttpDownloader;
 import com.modelw.LoginResponse;
 import com.utilsw.DisplayUtil;
 import com.utilsw.FileUtils;
@@ -19,6 +21,7 @@ import com.utilsw.JsonUtils;
 import com.utilsw.MenuUtils;
 
 import android.app.Activity;
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -81,17 +84,22 @@ public class InitPage extends Activity {
         sWidth = DisplayUtil.dip2px(DisplayUtil.DPWIDTH);
 		sHeight=DisplayUtil.dip2px(DisplayUtil.DPHEIGHT-108);
 		FileUtils.cacheDir  = new File("/sdcard/ChiHuoPro/MenuImg/");
+		
         if (!FileUtils.cacheDir.exists()) {
 			FileUtils.cacheDir.mkdirs();
 		}
 		MenuUtils.initUrl="http://"+getResources().getString(R.string.url_service);
         MenuUtils.updateUrl="http://"+getResources().getString(R.string.url_service);
         MenuUtils.imageUrl="http://"+getResources().getString(R.string.image_service);
-		
-		// Start the service
-	    ServiceManager serviceManager = new ServiceManager(this);
-	    serviceManager.setNotificationIcon(R.drawable.notification);
-	    serviceManager.startService();
+        //启用图片缓存
+      	HttpDownloader.enableHttpResponseCache();
+		// 设置通知样式
+      	BasicPushNotificationBuilder builder = new BasicPushNotificationBuilder(InitPage.this);
+      	builder.statusBarDrawable = R.drawable.notification_icon;
+      	builder.notificationFlags = Notification.FLAG_AUTO_CANCEL;  //设置为自动消失
+      	builder.notificationDefaults = Notification.DEFAULT_SOUND|Notification.DEFAULT_VIBRATE;  // 设置为铃声与震动都要
+      	JPushInterface.setPushNotificationBuilder(1, builder);
+      	
 	    
 	}
 	

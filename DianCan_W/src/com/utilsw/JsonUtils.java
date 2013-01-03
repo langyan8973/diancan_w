@@ -12,6 +12,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.modelw.LoginResponse;
 import com.modelw.Order;
+import com.modelw.OrderItem;
 import com.modelw.restaurant;
 
 
@@ -62,8 +63,6 @@ public class JsonUtils {
 	 */
 	public static Order ParseJsonToOrder(String jsonStr)
 	{
-		jsonStr=jsonStr.replace("T", " ");
-		jsonStr=jsonStr.replace("+08:00", "");
 		Type objType=new TypeToken<Order>() {
 		}.getType();
 		Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:SS")
@@ -76,6 +75,27 @@ public class JsonUtils {
 			e.printStackTrace();
 		}
 		return order;
+	}
+	
+	/***
+	 * 将json串转换成orderitem对象
+	 * @param jsonStr
+	 * @return
+	 */
+	public static OrderItem ParseJsonToOrderItem(String jsonStr)
+	{
+		Type objType=new TypeToken<OrderItem>() {
+		}.getType();
+		Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:SS")
+				.create();
+		OrderItem orderItem=null;
+		try {
+			orderItem = sGson.fromJson(jsonStr, objType);
+		} catch (JsonSyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return orderItem;
 	}
 	
 	/***

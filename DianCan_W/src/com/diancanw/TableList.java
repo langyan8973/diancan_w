@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.androidpn.clientw.Constants;
-import org.androidpn.clientw.ServiceManager;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 
@@ -18,6 +16,7 @@ import com.customw.CategoryListAdapter;
 import com.customw.CustomViewBinder;
 import com.declarew.Declare_w;
 import com.httpw.HttpDownloader;
+import com.modelw.Category;
 import com.modelw.Desk;
 import com.modelw.DeskType;
 import com.modelw.Order;
@@ -207,9 +206,16 @@ public class TableList extends Activity {
 		input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
 
-        RequestTypes();
-        
+        RequestRecipeTypes();
 	}
+	
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		RequestTypes();
+	}
+
 	/***
 	 * 初始化
 	 */
@@ -247,6 +253,34 @@ public class TableList extends Activity {
 				}
 				else {
 					httpHandler.obtainMessage(1).sendToTarget();
+				}
+				
+			}
+		}).start();
+	}
+	
+	/***
+	 * 新启线程请求菜品类别
+	 */
+	private void RequestRecipeTypes() {
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				List<Category> categories=MenuUtils.getAllCategory(m_Declare.loginResponse.getRestaurant().getId());
+				if(categories==null||categories.size()==0)
+				{
+					httpHandler.obtainMessage(0,"获取菜品类别失败！").sendToTarget();
+				}
+				else {
+					Iterator<Category> iterator;
+					HashMap<String, String> cathash=new HashMap<String, String>();
+					for(iterator=categories.iterator();iterator.hasNext();){
+						Category category=iterator.next();
+						cathash.put(category.getId().toString(), category.getName());
+					}
+					m_Declare.hashTypes=cathash;
 				}
 				
 			}
@@ -613,12 +647,6 @@ public class TableList extends Activity {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-//					if(sharedPrefs==null)
-//					{
-//						sharedPrefs = getSharedPreferences(Constants.SHARED_PREFERENCE_NAME,
-//				                Context.MODE_PRIVATE);
-//					}
-//					String usernameString= sharedPrefs.getString(Constants.XMPP_USERNAME, "");
 					String resultString = HttpDownloader.submitOrder(MenuUtils.initUrl, id, count,
 							m_Declare.loginResponse.getRestaurant().getId(),m_Declare.loginResponse.getToken());
 					httpHandler.obtainMessage(3,resultString).sendToTarget();
@@ -668,7 +696,7 @@ public class TableList extends Activity {
 		    }
 		    
 		    
-		    Intent intent=new Intent(this, OrderPage.class);
+		    Intent intent=new Intent(this, OrderActivity.class);
 		    intent.putExtra("order", order);
 		    startActivity(intent);
 		} catch (Throwable e) {
@@ -775,7 +803,7 @@ public class TableList extends Activity {
 			System.out.println("resultString:"+jsString);
 			Order order=JsonUtils.ParseJsonToOrder(jsString);
 			
-		    Intent intent=new Intent(this, OrderPage.class);
+		    Intent intent=new Intent(this, OrderActivity.class);
 		    intent.putExtra("order", order);
 		    startActivity(intent);
 		} catch (Throwable e) {

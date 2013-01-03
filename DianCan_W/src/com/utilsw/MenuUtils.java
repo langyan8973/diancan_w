@@ -14,6 +14,7 @@ import com.modelw.Category;
 import com.modelw.Desk;
 import com.modelw.DeskType;
 import com.modelw.MessContent;
+import com.modelw.Order;
 import com.modelw.Recipe;
 
 import android.R.integer;
@@ -37,9 +38,9 @@ public class MenuUtils {
 	public static String Service_2="加水";
 	public static String Service_3="服务员";
 	
-	public static ArrayList<String> Login(int code,String name,String password) throws Throwable{
+	public static ArrayList<String> Login(int code,String name,String password,String udid) throws Throwable{
 		
-		ArrayList<String> arr=HttpDownloader.UserLogin(code, name, password, initUrl+"wlogin");
+		ArrayList<String> arr=HttpDownloader.UserLogin(code, name, password, udid,initUrl+"wlogin");
 		return arr;
 	}
 
@@ -47,8 +48,8 @@ public class MenuUtils {
 	 * 获取所有菜类别
 	 * @return
 	 */
-	public static List<Category> getAllCategory() {
-		String urlString = initUrl + "categories";
+	public static List<Category> getAllCategory(int rid) {
+		String urlString = initUrl + "restaurants/"+rid+"/categories";
 		String jsonStr = HttpDownloader.getString(urlString,null);
 		System.out.println(jsonStr);
 
@@ -104,6 +105,7 @@ public class MenuUtils {
 		String urlString = initUrl + "restaurants/"+id+"/desktypes";
 
 		String jsonStr = HttpDownloader.getString(urlString,null);
+		
 
 		Type objType = new TypeToken<List<DeskType>>() {
 		}.getType();
@@ -129,6 +131,24 @@ public class MenuUtils {
 		Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:SS")
 				.create();
 		List<Desk> infos = sGson.fromJson(jsonStr, objType);
+		return infos;
+	}
+	
+	/***
+	 * 获取服务员的所有订单
+	 * @return
+	 */
+	public static List<Order> getOrders(int id,String token)
+	{
+		String urlString = initUrl + "user/restaurants/"+id+"/orders";
+
+		String jsonStr = HttpDownloader.getString(urlString,token);
+
+		Type objType = new TypeToken<List<Order>>() {
+		}.getType();
+		Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:SS")
+				.create();
+		List<Order> infos = sGson.fromJson(jsonStr, objType);
 		return infos;
 	}
 

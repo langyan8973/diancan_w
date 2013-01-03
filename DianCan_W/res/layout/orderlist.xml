@@ -1,8 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
-    
-
-</LinearLayout>
+    android:orientation="vertical"
+    android:id="@+id/ordergrid_layout" 
+    android:background="#FFCCCCCC">
+    <RelativeLayout android:id="@+id/ordertitlelayout"
+        android:layout_width="fill_parent"
+        android:layout_height="47dip"
+        android:paddingLeft="3dip"
+        android:paddingRight="3dip"
+        android:paddingTop="3dip"
+        android:paddingBottom="3dip"
+        android:background="@drawable/hejititle">
+        <ProgressBar android:id="@+id/orderpro"
+		      android:layout_width="wrap_content" 
+		      android:layout_height="wrap_content"
+		      android:layout_alignParentLeft="true"
+		      android:layout_centerVertical="true"
+		      style="?android:attr/progressBarStyleSmall">
+		</ProgressBar>
+        <TextView android:layout_width="67dip"
+            android:layout_height="40dip"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="订单表"
+            android:textColor="#FFFFFFFF"
+            android:id="@+id/TxtOrderTitle"/>
+    </RelativeLayout> 
+	<RelativeLayout android:id="@+id/OrderContent"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:layout_below="@+id/ordertitlelayout">
+	    
+	    
+	</RelativeLayout>  
+</RelativeLayout>

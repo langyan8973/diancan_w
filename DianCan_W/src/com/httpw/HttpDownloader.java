@@ -60,7 +60,6 @@ import android.graphics.drawable.Drawable;
 
 
 public class HttpDownloader {
-	static HttpClient client;
 	/***
 	 * 发送请求获取返回的字符串
 	 * @param urlStr
@@ -68,10 +67,7 @@ public class HttpDownloader {
 	 */
 	public static String getString(String urlStr,String token) {
 		StringBuffer sb = new StringBuffer();
-		if(client==null)
-		{
-			client= new DefaultHttpClient();
-		}
+		DefaultHttpClient client= new DefaultHttpClient();
 		HttpGet get = new HttpGet(urlStr);
 		
 		if(token!=null)
@@ -236,7 +232,7 @@ public class HttpDownloader {
 			post.setEntity(entity);
 			
 			HttpClientParams.setRedirecting(post.getParams(), false);
-			
+			DefaultHttpClient client= new DefaultHttpClient();
 			HttpResponse response = client.execute(post);
 			HttpEntity responseEntity = response.getEntity();
 			String jsonString=parseContent(responseEntity.getContent());
@@ -249,6 +245,29 @@ public class HttpDownloader {
 			else {
 				throw new Exception(jsonString);
 			}
+		}
+		
+		/**
+		 * 结账、撤单或改变订单项状态请求
+		 * @param urlString
+		 * @param token
+		 * @return
+		 * @throws IOException 
+		 * @throws ClientProtocolException 
+		 */
+		public static String PutOrder(String urlString,String token) throws ClientProtocolException, IOException{
+			DefaultHttpClient client;
+			client = new DefaultHttpClient();
+			
+			HttpPut put = new HttpPut(urlString);
+			put.addHeader("Authorization", token);
+			HttpResponse response = client.execute(put);
+					
+			HttpEntity entity = response.getEntity();
+			System.out.println(entity.getContentType().getValue());
+			String jsonString=parseContent(entity.getContent());
+			System.out.println(jsonString);
+			return jsonString;
 		}
 		
 		
@@ -271,7 +290,7 @@ public class HttpDownloader {
 			post.setHeader("Content-Type", "application/json;charset=UTF-8");
 			
 			HttpClientParams.setRedirecting(post.getParams(), true);
-			
+			DefaultHttpClient client= new DefaultHttpClient();
 			HttpResponse response = client.execute(post);
 			HttpEntity responseEntity = response.getEntity();
 			String jsonString=parseContent(responseEntity.getContent());
@@ -292,7 +311,7 @@ public class HttpDownloader {
 			post.setHeader("Content-Type", "application/json;charset=UTF-8");
 			
 			HttpClientParams.setRedirecting(post.getParams(), true);
-			
+			DefaultHttpClient client= new DefaultHttpClient();
 			HttpResponse response = client.execute(post);
 			HttpEntity responseEntity = response.getEntity();
 			String jsonString=parseContent(responseEntity.getContent());
@@ -305,17 +324,16 @@ public class HttpDownloader {
 			}
 		}
 		
-		public static ArrayList<String> UserLogin(int id,String name,String password,String strurl) throws Throwable{ 
+		public static ArrayList<String> UserLogin(int id,String name,String password,String udid,String strurl) throws Throwable{ 
 			
-			if(client==null)
-			{
-				client= new DefaultHttpClient();
-			}
+			
+			  DefaultHttpClient client= new DefaultHttpClient();
 			  HttpPost httppost = new HttpPost(strurl); 
 			  List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2); 
 			   nameValuePairs.add(new BasicNameValuePair("restaurant", id+""));
 			   nameValuePairs.add(new BasicNameValuePair("username", name)); 
 			   nameValuePairs.add(new BasicNameValuePair("password", password)); 
+			   nameValuePairs.add(new BasicNameValuePair("udid", udid));
 	
 			   httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs)); 
 	

@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.androidpn.clientw.Constants;
-
 import com.declarew.Declare_w;
 import com.modelw.MessContent;
 import com.modelw.ServiceMess;
@@ -65,9 +63,9 @@ public class ServicePage extends Activity {
 		declare.isMessPage=true;
 	    receiver = new NotifiReceiver();
 	    IntentFilter filter = new IntentFilter();
-	    filter.addAction(Constants.ACTION_SHOW_NOTIFICATION);
-        filter.addAction(Constants.ACTION_NOTIFICATION_CLICKED);
-        filter.addAction(Constants.ACTION_NOTIFICATION_CLEARED);
+//	    filter.addAction(Constants.ACTION_SHOW_NOTIFICATION);
+//        filter.addAction(Constants.ACTION_NOTIFICATION_CLICKED);
+//        filter.addAction(Constants.ACTION_NOTIFICATION_CLEARED);
 	    registerReceiver(receiver, filter);
 	}
 
@@ -129,64 +127,64 @@ public class ServicePage extends Activity {
 		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
 			String action = intent.getAction();
-    		if (Constants.ACTION_SHOW_NOTIFICATION.equals(action)) {
-                String notificationId = intent
-                        .getStringExtra(Constants.NOTIFICATION_ID);
-                String notificationApiKey = intent
-                        .getStringExtra(Constants.NOTIFICATION_API_KEY);
-                String notificationTitle = intent
-                        .getStringExtra(Constants.NOTIFICATION_TITLE);
-                String notificationMessage = intent
-                        .getStringExtra(Constants.NOTIFICATION_MESSAGE);
-                String notificationUri = intent
-                        .getStringExtra(Constants.NOTIFICATION_URI);
-                
-                if(notificationTitle.equals("21")||notificationTitle.equals("22")||notificationTitle.equals("23"))
-                {
-                	UUID uuid = UUID.randomUUID();
-           			ServiceMess sMess=new ServiceMess();
-           			sMess.setId(uuid.toString());     			
-           			
-                   if(notificationTitle.equals("21"))
-                   {
-                	   MessContent content=MenuUtils.getMessContentByjs(notificationMessage);
-                	   
-                	   sMess.setsText(content.getName()+"请求"+MenuUtils.Service_2);
-                   }
-                   else if(notificationTitle.equals("22"))
-                   {
-                	   MessContent content=MenuUtils.getMessContentByjs(notificationMessage);
-                	   
-                	   sMess.setsText(content.getName()+"请求"+MenuUtils.Service_1);
-                   }
-                   else if(notificationTitle.equals("23"))
-                   {
-                	   MessContent content=MenuUtils.getMessContentByjs(notificationMessage);
-                	   sMess.setsText(content.getName()+MenuUtils.Service_3);
-                   }
-                   
-                   sMess.setComplete(false);
-          		   sMess.setMessReturned("已收到");
-          		   messages.add(sMess);
-          		   
-          		   HashMap<String, Object> mapnew=new HashMap<String, Object>();
- 				   mapnew.put("id", sMess.getId());
- 				   mapnew.put("content", sMess.getsText());
- 				   mapnew.put("returnmess", sMess.getMessReturned());
- 				   String strCom="";
- 				   if(sMess.isComplete())
- 				   {
- 				    	strCom="true";
- 				   }
- 				   else {
- 					    strCom="false";
- 				   }
- 				   mapnew.put("iscomplete", strCom);
- 				   messHashMaps.add(mapnew);
- 				   messageListAdapter.notifyDataSetChanged();
-                }
-                
-    		}
+//    		if (Constants.ACTION_SHOW_NOTIFICATION.equals(action)) {
+//                String notificationId = intent
+//                        .getStringExtra(Constants.NOTIFICATION_ID);
+//                String notificationApiKey = intent
+//                        .getStringExtra(Constants.NOTIFICATION_API_KEY);
+//                String notificationTitle = intent
+//                        .getStringExtra(Constants.NOTIFICATION_TITLE);
+//                String notificationMessage = intent
+//                        .getStringExtra(Constants.NOTIFICATION_MESSAGE);
+//                String notificationUri = intent
+//                        .getStringExtra(Constants.NOTIFICATION_URI);
+//                
+//                if(notificationTitle.equals("21")||notificationTitle.equals("22")||notificationTitle.equals("23"))
+//                {
+//                	UUID uuid = UUID.randomUUID();
+//           			ServiceMess sMess=new ServiceMess();
+//           			sMess.setId(uuid.toString());     			
+//           			
+//                   if(notificationTitle.equals("21"))
+//                   {
+//                	   MessContent content=MenuUtils.getMessContentByjs(notificationMessage);
+//                	   
+//                	   sMess.setsText(content.getName()+"请求"+MenuUtils.Service_2);
+//                   }
+//                   else if(notificationTitle.equals("22"))
+//                   {
+//                	   MessContent content=MenuUtils.getMessContentByjs(notificationMessage);
+//                	   
+//                	   sMess.setsText(content.getName()+"请求"+MenuUtils.Service_1);
+//                   }
+//                   else if(notificationTitle.equals("23"))
+//                   {
+//                	   MessContent content=MenuUtils.getMessContentByjs(notificationMessage);
+//                	   sMess.setsText(content.getName()+MenuUtils.Service_3);
+//                   }
+//                   
+//                   sMess.setComplete(false);
+//          		   sMess.setMessReturned("已收到");
+//          		   messages.add(sMess);
+//          		   
+//          		   HashMap<String, Object> mapnew=new HashMap<String, Object>();
+// 				   mapnew.put("id", sMess.getId());
+// 				   mapnew.put("content", sMess.getsText());
+// 				   mapnew.put("returnmess", sMess.getMessReturned());
+// 				   String strCom="";
+// 				   if(sMess.isComplete())
+// 				   {
+// 				    	strCom="true";
+// 				   }
+// 				   else {
+// 					    strCom="false";
+// 				   }
+// 				   mapnew.put("iscomplete", strCom);
+// 				   messHashMaps.add(mapnew);
+// 				   messageListAdapter.notifyDataSetChanged();
+//                }
+//                
+//    		}
 		}
 		
 	}

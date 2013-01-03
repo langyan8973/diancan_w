@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import cn.jpush.android.api.JPushInterface;
+
 import com.declarew.Declare_w;
 import com.modelw.LoginResponse;
 import com.modelw.restaurant;
@@ -97,7 +99,7 @@ public class LoginPage extends Activity {
 			String codeString=m_CodeEditText.getText().toString();
 			String nameString=m_UserNameEditText.getText().toString();
 			String passString=m_PasswordEditText.getText().toString();
-			
+			String udid =  JPushInterface.getUdid(getApplicationContext());
 			if(codeString==""||nameString==""||passString==""){
 				ShowToast("登录信息填写不全！");
 				return;
@@ -105,7 +107,7 @@ public class LoginPage extends Activity {
 			
 			int code=Integer.parseInt(codeString);
 			try {
-				ArrayList<String> infoArrayList=MenuUtils.Login(code, nameString, passString);
+				ArrayList<String> infoArrayList=MenuUtils.Login(code, nameString, passString,udid);
 				if(infoArrayList==null){
 					ShowToast("登录失败！");
 					return;
