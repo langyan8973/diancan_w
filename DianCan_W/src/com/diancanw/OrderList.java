@@ -109,7 +109,8 @@ public class OrderList extends Activity {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				orders=MenuUtils.getOrders(m_Declare.loginResponse.getRestaurant().getId(), m_Declare.loginResponse.getToken());
+				orders=MenuUtils.getOrders(m_Declare.loginResponse.getRestaurantid(), m_Declare.loginResponse.getToken(),
+						m_Declare.udidString);
 				if(orders==null)
 				{
 					httpHandler.obtainMessage(0,"获取订单列表失败！").sendToTarget();
@@ -200,8 +201,8 @@ public class OrderList extends Activity {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurant().getId()+"/orders/"+oidString,
-							m_Declare.loginResponse.getToken());
+					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+oidString,
+							m_Declare.loginResponse.getToken(),m_Declare.udidString);
 					if(resultString==null)
 					{
 						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();

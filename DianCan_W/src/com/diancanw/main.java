@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.http.client.ClientProtocolException;
 
+import com.declarew.Declare_w;
 import com.httpw.HttpDownloader;
 import com.modelw.Order;
 import com.utilsw.JsonUtils;
@@ -17,6 +18,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.Menu;
@@ -200,7 +202,11 @@ public class main extends TabActivity {
 	}
 	
 	public void DeleteUserInfo(){
-		this.deleteFile("Login.txt");
+		SharedPreferences userInfo = getSharedPreferences("user_info", 0);
+		userInfo.edit().putString("token","").commit();
+	    userInfo.edit().putInt("restaurantid", 0).commit();
+	    Declare_w declare_w=(Declare_w)this.getApplicationContext();
+	    declare_w.loginResponse=null;
 	}
 	
     

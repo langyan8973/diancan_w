@@ -246,7 +246,7 @@ public class TableList extends Activity {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				types=MenuUtils.getDeskTypes(m_Declare.loginResponse.getRestaurant().getId());
+				types=MenuUtils.getDeskTypes(m_Declare.loginResponse.getRestaurantid());
 				if(types==null||types.size()==0)
 				{
 					httpHandler.obtainMessage(0,"获取餐桌类别失败！").sendToTarget();
@@ -268,7 +268,7 @@ public class TableList extends Activity {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				List<Category> categories=MenuUtils.getAllCategory(m_Declare.loginResponse.getRestaurant().getId());
+				List<Category> categories=MenuUtils.getAllCategory(m_Declare.loginResponse.getRestaurantid());
 				if(categories==null||categories.size()==0)
 				{
 					httpHandler.obtainMessage(0,"获取菜品类别失败！").sendToTarget();
@@ -339,7 +339,7 @@ public class TableList extends Activity {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				deskList=MenuUtils.getDesksByTid(selectDeskType.getId(),m_Declare.loginResponse.getRestaurant().getId());
+				deskList=MenuUtils.getDesksByTid(selectDeskType.getId(),m_Declare.loginResponse.getRestaurantid());
 				if(deskList==null||deskList.size()==0)
 				{
 					httpHandler.obtainMessage(0,"获取餐桌列表失败").sendToTarget();
@@ -648,7 +648,8 @@ public class TableList extends Activity {
 				// TODO Auto-generated method stub
 				try {
 					String resultString = HttpDownloader.submitOrder(MenuUtils.initUrl, id, count,
-							m_Declare.loginResponse.getRestaurant().getId(),m_Declare.loginResponse.getToken());
+							m_Declare.loginResponse.getRestaurantid(),m_Declare.loginResponse.getToken()
+							,m_Declare.udidString);
 					httpHandler.obtainMessage(3,resultString).sendToTarget();
 				} catch (Throwable e) {
 					// TODO Auto-generated catch block
@@ -746,7 +747,8 @@ public class TableList extends Activity {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					String resultString = HttpDownloader.getString(MenuUtils.initUrl+"orders/desk/"+codeString,m_Declare.loginResponse.getToken());
+					String resultString = HttpDownloader.getString(MenuUtils.initUrl+"orders/desk/"+codeString,
+							m_Declare.loginResponse.getToken(),m_Declare.udidString);
 					if(resultString==null)
 					{
 						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
@@ -775,8 +777,8 @@ public class TableList extends Activity {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurant().getId()+"/orders/"+oidString,
-							m_Declare.loginResponse.getToken());
+					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+oidString,
+							m_Declare.loginResponse.getToken(),m_Declare.udidString);
 					if(resultString==null)
 					{
 						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();

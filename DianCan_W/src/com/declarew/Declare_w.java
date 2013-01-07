@@ -19,6 +19,7 @@ public class Declare_w extends Application {
 	public boolean isMessPage=false;
 	public ArrayList<ServiceMess> messArrayList=new ArrayList<ServiceMess>();
 	public LoginResponse loginResponse;
+	public String udidString;
 	public HashMap<String, String> hashTypes;
 	@Override
 	public void onCreate() {

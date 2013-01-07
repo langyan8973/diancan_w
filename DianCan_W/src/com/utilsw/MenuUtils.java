@@ -50,7 +50,7 @@ public class MenuUtils {
 	 */
 	public static List<Category> getAllCategory(int rid) {
 		String urlString = initUrl + "restaurants/"+rid+"/categories";
-		String jsonStr = HttpDownloader.getString(urlString,null);
+		String jsonStr = HttpDownloader.getString(urlString,null,null);
 		System.out.println(jsonStr);
 
 		Type objType = new TypeToken<List<Category>>() {
@@ -69,7 +69,7 @@ public class MenuUtils {
 	public static List<Recipe> getRecipesByCategory(Integer id) {
 		String urlString = initUrl + "categories/" + id;
 
-		String jsonStr = HttpDownloader.getString(urlString,null);
+		String jsonStr = HttpDownloader.getString(urlString,null,null);
 
 		Type objType = new TypeToken<List<Recipe>>() {
 		}.getType();
@@ -86,7 +86,7 @@ public class MenuUtils {
 	public static List<Desk> getAllDesks() {
 		String urlString = initUrl + "desks";
 
-		String jsonStr = HttpDownloader.getString(urlString,null);
+		String jsonStr = HttpDownloader.getString(urlString,null,null);
 
 		Type objType = new TypeToken<List<Desk>>() {
 		}.getType();
@@ -104,7 +104,7 @@ public class MenuUtils {
 	{
 		String urlString = initUrl + "restaurants/"+id+"/desktypes";
 
-		String jsonStr = HttpDownloader.getString(urlString,null);
+		String jsonStr = HttpDownloader.getString(urlString,null,null);
 		
 
 		Type objType = new TypeToken<List<DeskType>>() {
@@ -124,7 +124,7 @@ public class MenuUtils {
 	{
 		String urlString = initUrl + "restaurants/"+rid+"/desks?tid="+id;
 
-		String jsonStr = HttpDownloader.getString(urlString,null);
+		String jsonStr = HttpDownloader.getString(urlString,null,null);
 
 		Type objType = new TypeToken<List<Desk>>() {
 		}.getType();
@@ -138,11 +138,11 @@ public class MenuUtils {
 	 * 获取服务员的所有订单
 	 * @return
 	 */
-	public static List<Order> getOrders(int id,String token)
+	public static List<Order> getOrders(int id,String token,String udid)
 	{
 		String urlString = initUrl + "user/restaurants/"+id+"/orders";
 
-		String jsonStr = HttpDownloader.getString(urlString,token);
+		String jsonStr = HttpDownloader.getString(urlString,token,udid);
 
 		Type objType = new TypeToken<List<Order>>() {
 		}.getType();
@@ -157,7 +157,7 @@ public class MenuUtils {
 		if (strdate != "") {
 			urlString += "/" + strdate;
 		}
-		String jsonStr = HttpDownloader.getString(urlString,null);
+		String jsonStr = HttpDownloader.getString(urlString,null,null);
 		// System.out.println(jsonStr);
 
 		Type objType = new TypeToken<AllDomain>() {

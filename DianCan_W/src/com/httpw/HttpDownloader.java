@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.CacheRequest;
 import java.net.CacheResponse;
 import java.net.HttpURLConnection;
@@ -65,7 +66,7 @@ public class HttpDownloader {
 	 * @param urlStr
 	 * @return
 	 */
-	public static String getString(String urlStr,String token) {
+	public static String getString(String urlStr,String token,String udid) {
 		StringBuffer sb = new StringBuffer();
 		DefaultHttpClient client= new DefaultHttpClient();
 		HttpGet get = new HttpGet(urlStr);
@@ -73,6 +74,7 @@ public class HttpDownloader {
 		if(token!=null)
 		{
 			get.addHeader("Authorization", token);
+			get.addHeader("X-device",udid);
 		}
 		else {
 			get.addHeader("accept", "application/json;charset=UTF-8");
@@ -221,7 +223,7 @@ public class HttpDownloader {
 	}
 	
 		//开台
-		public static String submitOrder(String rootUrl,int tid,int number,int rid,String token) throws Throwable {
+		public static String submitOrder(String rootUrl,int tid,int number,int rid,String token,String udid) throws Throwable {
 			
 			MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
 			entity.addPart("did", new StringBody(tid+""));
@@ -229,6 +231,7 @@ public class HttpDownloader {
 			String rUrl=rootUrl + "restaurants/"+rid+"/orders";
 			HttpPost post = new HttpPost(rUrl);
 			post.addHeader("Authorization", token);
+			post.addHeader("X-device",udid);
 			post.setEntity(entity);
 			
 			HttpClientParams.setRedirecting(post.getParams(), false);
@@ -255,12 +258,13 @@ public class HttpDownloader {
 		 * @throws IOException 
 		 * @throws ClientProtocolException 
 		 */
-		public static String PutOrder(String urlString,String token) throws ClientProtocolException, IOException{
+		public static String PutOrder(String urlString,String token,String udid) throws ClientProtocolException, IOException{
 			DefaultHttpClient client;
 			client = new DefaultHttpClient();
 			
 			HttpPut put = new HttpPut(urlString);
 			put.addHeader("Authorization", token);
+			put.addHeader("X-device",udid);
 			HttpResponse response = client.execute(put);
 					
 			HttpEntity entity = response.getEntity();
@@ -329,11 +333,11 @@ public class HttpDownloader {
 			
 			  DefaultHttpClient client= new DefaultHttpClient();
 			  HttpPost httppost = new HttpPost(strurl); 
+			  httppost.addHeader("X-device", udid);
 			  List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2); 
 			   nameValuePairs.add(new BasicNameValuePair("restaurant", id+""));
 			   nameValuePairs.add(new BasicNameValuePair("username", name)); 
 			   nameValuePairs.add(new BasicNameValuePair("password", password)); 
-			   nameValuePairs.add(new BasicNameValuePair("udid", udid));
 	
 			   httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs)); 
 	
@@ -352,6 +356,20 @@ public class HttpDownloader {
 					throw new Exception(jsonString);
 				} 
 		} 
+		
+		public static String RegisterUdid(String id,String strurl) throws ClientProtocolException, IOException{
+			  DefaultHttpClient client= new DefaultHttpClient();
+			  HttpPost httppost = new HttpPost(strurl); 
+			  List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1); 
+			   nameValuePairs.add(new BasicNameValuePair("udid", id+""));
+			   httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs)); 
+	
+			   HttpResponse response; 
+			   response=client.execute(httppost); 
+			   HttpEntity responseEntity = response.getEntity();
+			   String jsonString=parseContent(responseEntity.getContent());
+				return jsonString;
+		}
 		
 		private static String parseContent(InputStream stream) throws IOException {
 			StringBuilder sb = new StringBuilder();

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import cn.jpush.android.api.JPushInterface;
 
 import com.declarew.Declare_w;
+import com.httpw.HttpDownloader;
 import com.modelw.LoginResponse;
 import com.modelw.restaurant;
 import com.utilsw.JsonUtils;
@@ -15,6 +16,7 @@ import com.utilsw.MenuUtils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -88,6 +90,7 @@ public class LoginPage extends Activity {
         toast.show();
 	}
 	
+	
 	/***
 	 * 登录按钮点击
 	 */
@@ -99,7 +102,8 @@ public class LoginPage extends Activity {
 			String codeString=m_CodeEditText.getText().toString();
 			String nameString=m_UserNameEditText.getText().toString();
 			String passString=m_PasswordEditText.getText().toString();
-			String udid =  JPushInterface.getUdid(getApplicationContext());
+			Declare_w declare_w=(Declare_w)LoginPage.this.getApplicationContext();
+			String udidString=declare_w.udidString;
 			if(codeString==""||nameString==""||passString==""){
 				ShowToast("登录信息填写不全！");
 				return;
@@ -107,21 +111,22 @@ public class LoginPage extends Activity {
 			
 			int code=Integer.parseInt(codeString);
 			try {
-				ArrayList<String> infoArrayList=MenuUtils.Login(code, nameString, passString,udid);
+				ArrayList<String> infoArrayList=MenuUtils.Login(code, nameString, passString,udidString);
 				if(infoArrayList==null){
 					ShowToast("登录失败！");
 					return;
 				}
-				Declare_w declare_w=(Declare_w)LoginPage.this.getApplicationContext();
+				
+				
 				LoginResponse loginResponse=new LoginResponse();
 				loginResponse.setToken(infoArrayList.get(0).toString());
 				String strRestaurant=infoArrayList.get(1).toString();
 				restaurant restaurant=JsonUtils.parseJsonToRestaurant(strRestaurant);
-				loginResponse.setRestaurant(restaurant);
+				loginResponse.setRestaurantid(restaurant.getId());
+				SharedPreferences userInfo = getSharedPreferences("user_info", 0);
+				userInfo.edit().putString("token",infoArrayList.get(0).toString()).commit();
+			    userInfo.edit().putInt("restaurantid", restaurant.getId()).commit();
 				declare_w.loginResponse=loginResponse;
-				
-				String strLogin =JsonUtils.ConvertLoginResponseToJson(loginResponse);
-				WriteLoginResponse(strLogin);
 				
 				Intent intent=new Intent(LoginPage.this,main.class);
 		        startActivity(intent);

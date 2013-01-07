@@ -145,9 +145,8 @@ public class OrderActivity extends Activity {
 		super.onResume();
 	    receiver = new NotifiReceiver();
 	    IntentFilter filter = new IntentFilter();
-//	    filter.addAction(Constants.ACTION_SHOW_NOTIFICATION);
-//        filter.addAction(Constants.ACTION_NOTIFICATION_CLICKED);
-//        filter.addAction(Constants.ACTION_NOTIFICATION_CLEARED);
+	    filter.addAction("diancan");
+	    filter.addCategory(Intent.CATEGORY_DEFAULT);
 	    registerReceiver(receiver, filter);
     	
 	}
@@ -259,6 +258,33 @@ public class OrderActivity extends Activity {
     	listAdapter.notifyDataSetChanged();
     }
     
+    public void FlashOrder(){
+    	mProgressBar.setVisibility(View.VISIBLE);
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+mOrder.getId(),
+							m_Declare.loginResponse.getToken(),m_Declare.udidString);
+					if(resultString==null)
+					{
+						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
+						return;
+					}
+					Order order=JsonUtils.ParseJsonToOrder(resultString);
+					mOrder=order;
+					httpHandler.obtainMessage(1,"").sendToTarget();
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					httpHandler.obtainMessage(0,e.getMessage()).sendToTarget();
+				}
+			}
+		}).start();
+    }
+    
     public void ClosePage(){
     	mProgressBar.setVisibility(View.INVISIBLE);
     	this.finish();
@@ -274,8 +300,8 @@ public class OrderActivity extends Activity {
 				String resultString;
 				try {
 					resultString = HttpDownloader.PutOrder(
-							MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurant().getId()+"/orders/"+mOrder.getId()+"/"+iid,
-							m_Declare.loginResponse.getToken());
+							MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+mOrder.getId()+"/"+iid,
+							m_Declare.loginResponse.getToken(),m_Declare.udidString);
 					OrderItem orderItem=JsonUtils.ParseJsonToOrderItem(resultString);
 					if(orderItem!=null&&orderItem.getStatus()==1){
 						httpHandler.obtainMessage(3,""+iid).sendToTarget();
@@ -309,30 +335,7 @@ public class OrderActivity extends Activity {
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
 			
-			mProgressBar.setVisibility(View.VISIBLE);
-			new Thread(new Runnable() {
-				
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					try {
-						String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurant().getId()+"/orders/"+mOrder.getId(),
-								m_Declare.loginResponse.getToken());
-						if(resultString==null)
-						{
-							httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
-							return;
-						}
-						Order order=JsonUtils.ParseJsonToOrder(resultString);
-						mOrder=order;
-						httpHandler.obtainMessage(1,"").sendToTarget();
-					} catch (Throwable e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						httpHandler.obtainMessage(0,e.getMessage()).sendToTarget();
-					}
-				}
-			}).start();
+			FlashOrder();
 		}
     	
     }
@@ -362,8 +365,8 @@ public class OrderActivity extends Activity {
 							String resultString;
 							try {
 								resultString = HttpDownloader.PutOrder(
-										MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurant().getId()+"/orders/"+mOrder.getId()+"/check",
-										m_Declare.loginResponse.getToken());
+										MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+mOrder.getId()+"/check",
+										m_Declare.loginResponse.getToken(),m_Declare.udidString);
 								Order order=JsonUtils.ParseJsonToOrder(resultString);
 								if(order!=null&&order.getStatus()==4){
 									httpHandler.obtainMessage(2,"").sendToTarget();
@@ -419,8 +422,8 @@ public class OrderActivity extends Activity {
 							String resultString;
 							try {
 								resultString = HttpDownloader.PutOrder(
-										MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurant().getId()+"/orders/"+mOrder.getId()+"/cancel",
-										m_Declare.loginResponse.getToken());
+										MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+mOrder.getId()+"/cancel",
+										m_Declare.loginResponse.getToken(),m_Declare.udidString);
 								Order order=JsonUtils.ParseJsonToOrder(resultString);
 								if(order!=null&&order.getStatus()==5){
 									httpHandler.obtainMessage(2,"").sendToTarget();
@@ -486,6 +489,14 @@ public class OrderActivity extends Activity {
 ////        			CreateElements();
 //                }
 //    		}
+			if(action.equals("diancan")){
+				String idString=intent.getSerializableExtra("message").toString();
+				int id=Integer.parseInt(idString);
+				if(id==mOrder.getId())
+				{
+					FlashOrder();
+				}
+			}
 		}
 		
 	}

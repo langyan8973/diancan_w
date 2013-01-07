@@ -24,7 +24,9 @@ import android.app.Activity;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Window;
 
@@ -38,9 +40,15 @@ public class InitPage extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.initpage);
         Init();
-        //判断用户文件是否存在
-        File userFile= new File(this.getApplicationContext().getFilesDir()+"/Login.txt");
-        if(!userFile.exists()){
+        Declare_w declare_w=(Declare_w)InitPage.this.getApplicationContext();
+        String udid =  JPushInterface.getUdid(getApplicationContext());
+        declare_w.udidString=udid;
+        //判断用户信息是否存在
+        SharedPreferences userInfo = getSharedPreferences("user_info", 0);
+        String token = userInfo.getString("token", "");
+        int restaurantid = userInfo.getInt("restaurantid", 0);
+        if(TextUtils.isEmpty(token)){
+        	RegisterUdid(udid);
         	Intent intent=new Intent(this,LoginPage.class);
 	        startActivity(intent);
 	        this.finish();
@@ -48,22 +56,15 @@ public class InitPage extends Activity {
         }
         
         //读取用户信息
-	    String jsonString="";
-	    try {
-	    		jsonString=ReadLoginInfo();
-	    		Declare_w declare_w=(Declare_w)InitPage.this.getApplicationContext();
-				LoginResponse loginResponse=JsonUtils.parseJsonToLoginResponse(jsonString);
-				declare_w.loginResponse=loginResponse;
-	    		Intent intent=new Intent(this,main.class);
-		        startActivity(intent);
-		        this.finish();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}catch (Exception e) {
-				e.printStackTrace();
-				// TODO: handle exception
-			}
+        LoginResponse loginResponse=new LoginResponse();
+        loginResponse.setRestaurantid(restaurantid);
+        loginResponse.setToken(token);
+        declare_w.loginResponse=loginResponse;
+        
+		Intent intent=new Intent(this,main.class);
+        startActivity(intent);
+        this.finish();
+	   
 	}
 	
 	/***
@@ -101,6 +102,23 @@ public class InitPage extends Activity {
       	JPushInterface.setPushNotificationBuilder(1, builder);
       	
 	    
+	}
+	
+	private void RegisterUdid(final String udid){
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					String resultString = HttpDownloader.RegisterUdid(udid,MenuUtils.initUrl+ "device");
+					
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}).start();
 	}
 	
 	public String ReadLoginInfo() throws IOException

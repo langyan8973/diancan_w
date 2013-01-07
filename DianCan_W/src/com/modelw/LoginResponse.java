@@ -3,7 +3,7 @@ package com.modelw;
 public class LoginResponse implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	private String token;
-	private restaurant restaurant;
+	private int restaurantid;
 	public LoginResponse(){
 		
 	}
@@ -13,11 +13,12 @@ public class LoginResponse implements java.io.Serializable{
 	public void setToken(String token) {
 		this.token = token;
 	}
-	public restaurant getRestaurant() {
-		return restaurant;
+	public int getRestaurantid() {
+		return restaurantid;
 	}
-	public void setRestaurant(restaurant restaurant) {
-		this.restaurant = restaurant;
+	public void setRestaurantid(int restaurantid) {
+		this.restaurantid = restaurantid;
 	}
+	
 	
 }
