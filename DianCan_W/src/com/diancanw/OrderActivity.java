@@ -60,6 +60,7 @@ public class OrderActivity extends Activity {
 	NotifiReceiver receiver;
 	Declare_w m_Declare;
 	HashMap<String, List<OrderItem>> hashOrderItems;
+	int Flag;
 	
 	private List<Map<String, Object>> itemlist = new ArrayList<Map<String, Object>>();  
 	private List<Map<String, Object>> tagList = new ArrayList<Map<String, Object>>();
@@ -116,6 +117,7 @@ public class OrderActivity extends Activity {
 		mProgressBar=(ProgressBar)findViewById(R.id.oprogress);
 		mProgressBar.setVisibility(View.INVISIBLE);
 		Intent intent=getIntent();
+		Flag=intent.getFlags();
 		mOrder=(Order)intent.getSerializableExtra("order");
 		
 		titleTextView.setText(mOrder.getDesk().getName()+"("+mOrder.getCode()+")");
@@ -201,9 +203,9 @@ public class OrderActivity extends Activity {
     	Set<String> meenum=hashOrderItems.keySet();
     	itemlist.clear();
     	tagList.clear();
-    	Iterator iterator;
+    	Iterator<String> iterator;
 		for (iterator = meenum.iterator(); iterator.hasNext();) {
-			strKey = (String) iterator.next();
+			strKey = iterator.next();
 			List<OrderItem> orderItemList=hashOrderItems.get(strKey);
 			Map<String, Object> tagMap=new HashMap<String, Object>();
 			tagMap.put("tagTitle", strKey);
@@ -465,30 +467,6 @@ public class OrderActivity extends Activity {
 		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
 			String action = intent.getAction();
-//    		if (Constants.ACTION_SHOW_NOTIFICATION.equals(action)) {
-//                String notificationId = intent
-//                        .getStringExtra(Constants.NOTIFICATION_ID);
-//                String notificationApiKey = intent
-//                        .getStringExtra(Constants.NOTIFICATION_API_KEY);
-//                String notificationTitle = intent
-//                        .getStringExtra(Constants.NOTIFICATION_TITLE);
-//                String notificationMessage = intent
-//                        .getStringExtra(Constants.NOTIFICATION_MESSAGE);
-//                String notificationUri = intent
-//                        .getStringExtra(Constants.NOTIFICATION_URI);
-//
-//                if(notificationTitle.equals("11")&&notificationMessage.equals(mOrder.getId().toString()))
-//                {
-//                	String jsonString = HttpDownloader.getString(MenuUtils.initUrl+ "orders/" +mOrder.getId() ,null);
-//        			final Order order=JsonUtils.ParseJsonToOrder(jsonString);
-//        			mOrder=order;
-////        			dicWidgets.clear();
-////        			hashOrderItems.clear();
-////        	    	rootLayout.removeAllViews();
-////        			InitHashOrderItems();
-////        			CreateElements();
-//                }
-//    		}
 			if(action.equals("diancan")){
 				String idString=intent.getSerializableExtra("message").toString();
 				int id=Integer.parseInt(idString);

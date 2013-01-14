@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.modelw.LoginResponse;
+import com.modelw.Notify;
 import com.modelw.Order;
 import com.modelw.OrderItem;
 import com.modelw.restaurant;
@@ -144,5 +145,20 @@ public class JsonUtils {
 			e.printStackTrace();
 		}
 		return loginResponse;
+	}
+	
+	public static Notify parseJsonToNotify(String jsonString){
+		Type objType=new TypeToken<Notify>() {
+		}.getType();
+		Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:SS")
+				.create();
+		Notify notify=null;
+		try {
+			notify = sGson.fromJson(jsonString, objType);
+		} catch (JsonSyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return notify;
 	}
 }

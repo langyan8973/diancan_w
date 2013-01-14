@@ -1,6 +1,14 @@
 package com.diancanw;
 
+import com.declarew.Declare_w;
+import com.httpw.HttpDownloader;
+import com.modelw.Notify;
+import com.modelw.Order;
+import com.utilsw.JsonUtils;
+import com.utilsw.MenuUtils;
+
 import cn.jpush.android.api.JPushInterface;
+import android.R.integer;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,17 +38,53 @@ public class JPReceiver extends BroadcastReceiver {
         	
         } else if (JPushInterface.ACTION_NOTIFICATION_OPENED.equals(intent.getAction())) {
             Log.d(TAG, "用户点击打开了通知");
-            
-        	//打开自定义的Activity
-        	Intent i = new Intent(context, ServicePage.class);
-        	i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        	context.startActivity(i);
+            ProcessOpenNotification(context,bundle);
         	
         } else {
         	Log.d(TAG, "Unhandled intent - " + intent.getAction());
         }
 	}
-
+	
+	/**
+	 * 打开通知
+	 * @param context
+	 * @param bundle
+	 */
+	private void ProcessOpenNotification(Context context,Bundle bundle){
+		String jsonString=bundle.getString(JPushInterface.EXTRA_EXTRA);
+		Notify notify=JsonUtils.parseJsonToNotify(jsonString);
+		if(notify==null){
+			return;
+		}
+    	GetOrder(notify.getOid(), context);
+	}
+	
+	public void GetOrder(int oid,Context context){
+		try {
+			Declare_w declare_w=(Declare_w)context.getApplicationContext();
+			String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+declare_w.loginResponse.getRestaurantid()+"/orders/"+oid,
+					declare_w.loginResponse.getToken(),declare_w.udidString);
+			if(resultString==null)
+			{
+				return;
+			}
+			Order order=JsonUtils.ParseJsonToOrder(resultString);
+			//打开自定义的Activity
+	    	Intent i = new Intent(context, OrderActivity.class);
+	    	i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	    	i.putExtra("order", order);
+	    	context.startActivity(i);
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 解析自定义消息
+	 * @param context
+	 * @param bundle
+	 */
 	private void ProcessCustomMessage(Context context,Bundle bundle){
 		String title = bundle.getString(JPushInterface.EXTRA_TITLE);
         String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
