@@ -4,12 +4,13 @@ import java.io.IOException;
 
 import org.apache.http.client.ClientProtocolException;
 
-import com.declarew.Declare_w;
-import com.httpw.HttpDownloader;
-import com.modelw.Order;
-import com.utilsw.JsonUtils;
-import com.utilsw.MenuUtils;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.http.HttpDownloader;
+import com.diancanw.model.Order;
+import com.diancanw.utils.JsonUtils;
+import com.diancanw.utils.MenuUtils;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.TabActivity;
 import android.app.AlertDialog.Builder;
@@ -31,13 +32,15 @@ import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 
+@SuppressLint("NewApi")
 public class main extends TabActivity {
     /** Called when the activity is first created. */
 	private TabHost m_tabHost;
 	private TabWidget m_tabWidget;
 	Resources rsResources;
 	BroadcastReceiver receiver;
-    @Override
+    @SuppressLint("NewApi")
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -56,23 +59,19 @@ public class main extends TabActivity {
         m_tabWidget = (TabWidget)findViewById(android.R.id.tabs);
         m_tabWidget.setStripEnabled(false);
         
-        //注册一个广播接收器 
-        receiver = new BroadcastReceiver() {
-      	@Override
-          public void onReceive(Context ctx, Intent intent) {
-      		if (intent.getAction().equals("toOrderPage")) {
-      			m_tabHost.setCurrentTab(1);
-//     			   View v=m_tabHost.getTabWidget().getChildAt(1);
-//     			   TextView txtcount=(TextView)v.findViewById(R.id.txtcount);
-//     			   txtcount.setVisibility(View.VISIBLE);
-//     			   txtcount.setText(declare.getTotalCount()+"");
-      		}
-      	}
-      };
-      IntentFilter filter = new IntentFilter();
-      filter.addAction("toOrderPage");
-      filter.addCategory(Intent.CATEGORY_DEFAULT);
-      registerReceiver(receiver, filter);
+//        //注册一个广播接收器 
+//        receiver = new BroadcastReceiver() {
+//      	@Override
+//          public void onReceive(Context ctx, Intent intent) {
+//      		if (intent.getAction().equals("toOrderPage")) {
+//      			m_tabHost.setCurrentTab(1);
+//      		}
+//      	}
+//      };
+//      IntentFilter filter = new IntentFilter();
+//      filter.addAction("toOrderPage");
+//      filter.addCategory(Intent.CATEGORY_DEFAULT);
+//      registerReceiver(receiver, filter);
     }
     
     /***
@@ -154,7 +153,7 @@ public class main extends TabActivity {
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		unregisterReceiver(receiver);
+//		unregisterReceiver(receiver);
 	}
 
 	@Override

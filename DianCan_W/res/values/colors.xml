@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="OrderItemTitleColor">#FF090909</color>
+    <color name="gray">#ff9a9a9a</color>
+    <color name="lightgray">#ffcccccc</color>
+    <color name="white">#ffffffff</color>
+    <color name="red">#ffff0000</color>
+    <color name="black">#ff000000</color>
+    <color name="transblack">#88000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="desktitle">#ff444444</color>
+</resources>

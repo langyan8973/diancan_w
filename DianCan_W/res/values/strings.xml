@@ -5,12 +5,20 @@
     <string name="app_name">DianCan_W</string>
 	<string name="db_folder">/sdcard/ChiHuoPro</string>
     <string name="img_folder">/sdcard/ChiHuoPro/MenuImg</string>
-    <string name="url_service">192.168.1.107:8080/ChihuoPlatform/rest/</string>
-    <string name="image_service">192.168.1.107:8080/MenuImages/</string>
+    <string name="url_service">192.168.1.102:8080/ChihuoPlatform/rest/</string>
+    <string name="image_service">192.168.1.102:8080/MenuImages/</string>
     <!-- 消费总计信息 -->
     <string name="infostr_sum">合计：</string>
     <!-- 提交按钮文字 -->
     <string name="btnstr_commit">提交</string>
-    <!-- 结账按钮文字 -->
-    <string name="btnstr_over">结账</string>
+    <string name="desksearchhint">搜索餐桌</string>
+    <string name="CategoryDefault">种类</string>
+    <string name="OrderListTitle">订单表</string>
+    <string name="refreshstring">刷新</string>
+    <string name="checkstring">结账</string>
+    <string name="cancelstring">撤销</string>
+    <string name="restaurantcode">饭店编码</string>
+    <string name="username">用户名</string>
+    <string name="password">密码</string>
+    <string name="btnlogin">登录</string>
 </resources>

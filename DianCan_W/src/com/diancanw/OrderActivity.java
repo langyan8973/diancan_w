@@ -10,15 +10,16 @@ import java.util.Set;
 
 import org.apache.http.client.ClientProtocolException;
 
-import com.customw.ImageDownloader;
-import com.declarew.Declare_w;
-import com.httpw.HttpDownloader;
-import com.modelw.Order;
-import com.modelw.OrderItem;
-import com.utilsw.DisplayUtil;
-import com.utilsw.JsonUtils;
-import com.utilsw.MenuUtils;
+import com.diancanw.custom.ImageDownloader;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.http.HttpDownloader;
+import com.diancanw.model.Order;
+import com.diancanw.model.OrderItem;
+import com.diancanw.utils.DisplayUtil;
+import com.diancanw.utils.JsonUtils;
+import com.diancanw.utils.MenuUtils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -33,6 +34,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -65,29 +67,7 @@ public class OrderActivity extends Activity {
 	private List<Map<String, Object>> itemlist = new ArrayList<Map<String, Object>>();  
 	private List<Map<String, Object>> tagList = new ArrayList<Map<String, Object>>();
 	
-	private Handler httpHandler = new Handler() {  
-        public void handleMessage (Message msg) {//此方法在ui线程运行   
-            switch(msg.what) {  
-            case 0: 
-            	String errString=msg.obj.toString();
-            	ShowError(errString);
-                break;   
-            case 1:
-            	UpdateElement();
-                break;  
-            case 2:
-            	ClosePage();
-            	break;
-            case 3:
-            	String strJs=msg.obj.toString();
-            	UpdateListView(strJs);
-            	break;
-            case 4:
-            	String strJs1=msg.obj.toString();
-            	break;
-            }  
-        }  
-    }; 
+	private Handler httpHandler = new HandlerExtension(); 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -101,11 +81,8 @@ public class OrderActivity extends Activity {
 		sumString=getResources().getString(R.string.infostr_sum);
 		orderListView=(ListView)findViewById(R.id.orderList);
 		sumTextView=(TextView)findViewById(R.id.sumText);
-		sumTextView.setTextColor(Color.WHITE);
-		sumTextView.setTextSize(DisplayUtil.dip2px(16));	
 		
 		titleTextView=(TextView)findViewById(R.id.deskTitle);
-		titleTextView.setTextColor(Color.WHITE);
 		flashButton=(Button)findViewById(R.id.BtnFlash);
 		flashButton.setOnClickListener(new FlashOnClick());
 		
@@ -326,6 +303,29 @@ public class OrderActivity extends Activity {
 		}).start();
     }
 	
+	private final class HandlerExtension extends Handler {
+		public void handleMessage (Message msg) {//此方法在ui线程运行   
+            switch(msg.what) {  
+            case 0: 
+            	String errString=msg.obj.toString();
+            	ShowError(errString);
+                break;   
+            case 1:
+            	UpdateElement();
+                break;  
+            case 2:
+            	ClosePage();
+            	break;
+            case 3:
+            	String strJs=msg.obj.toString();
+            	UpdateListView(strJs);
+            	break;
+            case 4:
+            	String strJs1=msg.obj.toString();
+            	break;
+            }  
+        }
+	}
 	/**
      * 点击刷新按钮
      * @author liuyan
@@ -537,24 +537,41 @@ public class OrderActivity extends Activity {
 			     imageDownloader.download(strUrl, recipeImg);
 			     
 			     final int iid=Integer.parseInt(map.get("id").toString());
-			     ImageView statusImg=(ImageView)convertView.findViewById(R.id.imgadd);
+			     ImageView statusImg=(ImageView)convertView.findViewById(R.id.imgstatus);
 			     int status=Integer.parseInt(map.get("status").toString());
 			     if(status==0){
-			    	 statusImg.setVisibility(View.VISIBLE);
-			    	 statusImg.setOnClickListener(new OnClickListener() {
-						
-						@Override
-						public void onClick(View v) {
-							// TODO Auto-generated method stub
+			    	 statusImg.setVisibility(View.INVISIBLE);
+			    	 
+			    	 convertView.setOnLongClickListener(new OnLongClickListener() {
 							
-							ChangeItemStatus(iid);
-						}
-					});
+							@Override
+							public boolean onLongClick(View v) {
+								// TODO Auto-generated method stub
+								AlertDialog.Builder builder = new Builder(OrderActivity.this);
+								builder.setMessage("确认划菜吗？");
+								builder.setTitle("提示");
+								builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										dialog.dismiss();
+										ChangeItemStatus(iid);
+									}
+								});
+								builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										dialog.dismiss();
+									}
+								});
+								builder.create().show();
+								return false;
+							}
+					   });
 			     }
 			     else{
-			    	 statusImg.setVisibility(View.INVISIBLE);
+			    	 statusImg.setVisibility(View.VISIBLE);
 			     }
-			   }    
+			   }  
 			   return convertView; 
 		}
     	

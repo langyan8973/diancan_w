@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.declarew.Declare_w;
-import com.modelw.MessContent;
-import com.modelw.ServiceMess;
-import com.utilsw.MenuUtils;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.model.MessContent;
+import com.diancanw.model.ServiceMess;
+import com.diancanw.utils.MenuUtils;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;

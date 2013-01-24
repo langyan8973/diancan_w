@@ -2,15 +2,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="70dp"
-    android:orientation="horizontal" 
-    android:gravity="center"
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp">
+    style="@style/OrderItemLayout"
+    >
     <ImageView android:id="@+id/imgctrl"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_alignParentLeft="true"
-        android:scaleType="fitXY"/>
+        style="@style/Widget.Image"
+        />
     <LinearLayout 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,13 +18,13 @@
         <TextView android:id="@+id/mtitle" 
           	android:layout_width="wrap_content"
           	android:layout_height="wrap_content" 
-          	android:textColor="#FF090909"
-          	android:textSize="16dp" />
+          	style="@style/Widget.TextView.OrderItemTitle"
+          	 />
 	    <TextView android:id="@+id/mprice"
 	    	android:layout_width="wrap_content" 
 	    	android:layout_height="wrap_content" 
-	    	android:textColor="#FFAAAAAA" 
-	    	android:textSize="15dp" />
+	    	style="@style/Widget.TextView.OrderItemPrice"
+	    	 />
     </LinearLayout>
     <LinearLayout 
         android:layout_width="wrap_content"
@@ -36,14 +35,13 @@
         <TextView android:id="@+id/mcount"
 	          android:layout_width="40dip"
 	          android:layout_height="30dip"
-	          android:textColor="#FFFF0000"
-	          android:textSize="20dip"
-	          android:gravity="center"/> 
+	          style="@style/Widget.TextView.OrderItemCount"/> 
 		
-	    <ImageView android:id="@+id/imgadd" 
+	    <ImageView android:id="@+id/imgstatus" 
 		    android:layout_width="30dip"
 		    android:layout_height="30dip"  
 		    android:layout_margin="3dip"
-		    android:src="@drawable/add"/>
+		    style="@style/Widget.Image.OrderItemStatus"
+		    />
     </LinearLayout>    
 </RelativeLayout>

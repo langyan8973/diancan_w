@@ -6,12 +6,12 @@ import java.util.ArrayList;
 
 import cn.jpush.android.api.JPushInterface;
 
-import com.declarew.Declare_w;
-import com.httpw.HttpDownloader;
-import com.modelw.LoginResponse;
-import com.modelw.restaurant;
-import com.utilsw.JsonUtils;
-import com.utilsw.MenuUtils;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.http.HttpDownloader;
+import com.diancanw.model.LoginResponse;
+import com.diancanw.model.restaurant;
+import com.diancanw.utils.JsonUtils;
+import com.diancanw.utils.MenuUtils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -124,10 +124,12 @@ public class LoginPage extends Activity {
 				loginResponse.setToken(infoArrayList.get(0).toString());
 				String strRestaurant=infoArrayList.get(1).toString();
 				restaurant restaurant=JsonUtils.parseJsonToRestaurant(strRestaurant);
-				loginResponse.setRestaurantid(restaurant.getId());
+				loginResponse.setRestaurantid(restaurant.getRid());
+				loginResponse.setWaiterid(restaurant.getWid());
 				SharedPreferences userInfo = getSharedPreferences("user_info", 0);
 				userInfo.edit().putString("token",infoArrayList.get(0).toString()).commit();
-			    userInfo.edit().putInt("restaurantid", restaurant.getId()).commit();
+			    userInfo.edit().putInt("restaurantid", restaurant.getRid()).commit();
+			    userInfo.edit().putInt("waiterid", restaurant.getWid()).commit();
 				declare_w.loginResponse=loginResponse;
 				
 				Intent intent=new Intent(LoginPage.this,main.class);

@@ -5,14 +5,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import com.customw.CustomViewBinder;
-import com.declarew.Declare_w;
-import com.httpw.HttpDownloader;
-import com.modelw.Desk;
-import com.modelw.Order;
-import com.utilsw.DisplayUtil;
-import com.utilsw.JsonUtils;
-import com.utilsw.MenuUtils;
+import com.diancanw.custom.CustomViewBinder;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.http.HttpDownloader;
+import com.diancanw.model.Desk;
+import com.diancanw.model.Order;
+import com.diancanw.utils.DisplayUtil;
+import com.diancanw.utils.JsonUtils;
+import com.diancanw.utils.MenuUtils;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -36,36 +36,13 @@ public class OrderList extends Activity {
 
 	List<Order> orders;
 	GridView mGridView;
-	RelativeLayout contentLayout;
 	ProgressBar mProgress;
 	
 	ArrayList<HashMap<String, Object>> imghashList;
 	SimpleAdapter gridSimpleAdapter;
 	Declare_w m_Declare;
 	
-	private Handler httpHandler = new Handler() {  
-        public void handleMessage (Message msg) {//此方法在ui线程运行   
-            switch(msg.what) {  
-            case 0: 
-            	String errString=msg.obj.toString();
-            	ShowError(errString);
-                break;   
-            case 1:
-            	DisplayGrid();
-                break;  
-            case 2:
-            	String strJs=msg.obj.toString();
-            	ResponseOrder(strJs);
-            	break;
-            case 3:
-            	String jsString=msg.obj.toString();
-            	break;
-            case 4:
-            	String strJs1=msg.obj.toString();
-            	break;
-            }  
-        }  
-    }; 
+	private Handler httpHandler = new HandlerExtension(); 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -74,16 +51,8 @@ public class OrderList extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.orderlist);
         
-        contentLayout=(RelativeLayout)findViewById(R.id.OrderContent);
-        mGridView=new GridView(this);
-		mGridView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT));
-		mGridView.setNumColumns(GridView.AUTO_FIT);
-		mGridView.setVerticalSpacing(DisplayUtil.dip2px(6.7f));
-		mGridView.setHorizontalSpacing(DisplayUtil.dip2px(6.7f));
-		mGridView.setColumnWidth(DisplayUtil.dip2px(80));
-		mGridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);	
+        mGridView=(GridView)findViewById(R.id.ordersGrid);
 		mGridView.setOnItemClickListener(new griditemclick());
-		contentLayout.addView(mGridView);
 		
 		mProgress=(ProgressBar)findViewById(R.id.orderpro);
 		mProgress.setVisibility(View.INVISIBLE);
@@ -150,13 +119,13 @@ public class OrderList extends Activity {
 			Bitmap bmp;
 			if(order.getDesk().getCapacity()<=4)
 			{
-				bmp = MenuUtils.readBitMap(this, R.drawable.mytable, 1);
+				bmp = MenuUtils.readBitMap(this, R.drawable.shopping_cart, 1);
 			}
 			else if(order.getDesk().getCapacity()>4&&order.getDesk().getCapacity()<=10){
-				bmp = MenuUtils.readBitMap(this, R.drawable.mytable, 1);
+				bmp = MenuUtils.readBitMap(this, R.drawable.shopping_cart, 1);
 			}
 			else {
-				bmp = MenuUtils.readBitMap(this, R.drawable.mytable, 1);
+				bmp = MenuUtils.readBitMap(this, R.drawable.shopping_cart, 1);
 			}
   			map.put("simg", bmp);
   			
@@ -251,6 +220,30 @@ public class OrderList extends Activity {
         toast.show();
 	}
 	
+	private final class HandlerExtension extends Handler {
+		public void handleMessage (Message msg) {//此方法在ui线程运行   
+            switch(msg.what) {  
+            case 0: 
+            	String errString=msg.obj.toString();
+            	ShowError(errString);
+                break;   
+            case 1:
+            	DisplayGrid();
+                break;  
+            case 2:
+            	String strJs=msg.obj.toString();
+            	ResponseOrder(strJs);
+            	break;
+            case 3:
+            	String jsString=msg.obj.toString();
+            	break;
+            case 4:
+            	String strJs1=msg.obj.toString();
+            	break;
+            }  
+        }
+	}
+
 	/**
 	 * 点击表格项
 	 * @author liuyan

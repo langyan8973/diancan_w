@@ -6,54 +6,52 @@
         android:layout_width="fill_parent"
         android:layout_height="47dip"
         android:layout_alignParentTop="true"
-        android:paddingLeft="3dip"
-        android:paddingRight="3dip"
-        android:background="@drawable/hejititle">
-        <TextView android:layout_width="wrap_content"
+        style="@style/Widget.RelativeLayout.TopBarLayout"
+        >
+        <TextView android:id="@+id/deskTitle"
+            android:layout_width="wrap_content"
             android:layout_height="40dip"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
-            android:id="@+id/deskTitle"/>
-        <TextView 
+            style="@style/Widget.TextView.OrderTitle"
+            />
+        <TextView android:id="@+id/sumText"
 		    android:layout_width="wrap_content"
 		    android:layout_height="33dip"
 		    android:layout_centerInParent="true"
-		    android:id="@+id/sumText"/>
-        <Button android:layout_width="60dip"
+		    style="@style/Widget.TextView.OrderSumText"
+		    />
+        <Button android:id="@+id/BtnFlash"
+            android:layout_width="60dip"
             android:layout_height="40dip"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/dianblack"
-            android:text="刷新"
-            android:textColor="#FFFFFFFF"
-            android:id="@+id/BtnFlash"/>
+            style="@style/Widget.Btn.TopRefreshBtn"
+            />
     </RelativeLayout>
     <ListView android:id="@+id/orderList"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_below="@+id/topbar"
         android:layout_above="@+id/bottombar"
-        android:divider="#FFFFFFFF"
-        android:dividerHeight="4dip"
-        android:listSelector="#FFFFFFFF"
-        android:cacheColorHint="#00000000"
-        android:background="#FFFFFFFF"></ListView>
+        style="@style/Widget.ListView.OrderList"
+        ></ListView>
     <LinearLayout android:id="@+id/bottombar" 
         android:layout_width="fill_parent"
         android:layout_height="40dip"
-        android:background="#FFCCCCCC"
-        android:orientation="horizontal"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        style="@style/Widget.LinearLayout.lightgray"
+        >
         <Button android:id="@+id/overBtn"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:text="结账"/>
+            android:text="@string/checkstring"/>
         <Button android:id="@+id/cancelBtn"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:text="撤销"/>
+            android:text="@string/cancelstring"/>
     </LinearLayout>
     <ProgressBar android:id="@+id/oprogress"
 	      android:layout_width="wrap_content" 

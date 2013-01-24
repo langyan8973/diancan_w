@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     android:orientation="vertical"
     android:gravity="center_vertical">    
 
@@ -20,11 +20,10 @@
             <EditText android:id="@+id/restaurantCode"
 		        android:layout_width="fill_parent"
 		        android:layout_height="40dip"
-		        android:layout_alignParentLeft="true"
 		        android:singleLine="true"
 		        android:phoneNumber="true"
 		        android:paddingLeft="5px"
-		        android:hint="饭店编码"/>
+		        android:hint="@string/restaurantcode"/>
         </LinearLayout>
         <LinearLayout android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -37,10 +36,9 @@
             <EditText android:id="@+id/userName"
 		        android:layout_width="fill_parent"
 		        android:layout_height="40dip"
-		        android:layout_alignParentLeft="true"
 		        android:singleLine="true"
 		        android:paddingLeft="5px"
-		        android:hint="用户名"/>
+		        android:hint="@string/username"/>
         </LinearLayout>
         <LinearLayout android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -53,11 +51,10 @@
             <EditText android:id="@+id/passwordText"
 		        android:layout_width="fill_parent"
 		        android:layout_height="40dip"
-		        android:layout_alignParentLeft="true"
 		        android:singleLine="true"
 		        android:paddingLeft="5px"
 		        android:password="true"
-		        android:hint="密码"/>
+		        android:hint="@string/password"/>
         </LinearLayout>
         <LinearLayout android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -70,7 +67,7 @@
                        
             <Button android:layout_width="150dip"
 	            android:layout_height="41dip"
-	            android:text="登录"
+	            android:text="@string/btnlogin"
 	            android:id="@+id/loginBtn"/>
         </LinearLayout>
     </LinearLayout>

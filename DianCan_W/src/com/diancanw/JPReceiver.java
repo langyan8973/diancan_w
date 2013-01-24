@@ -1,11 +1,11 @@
 package com.diancanw;
 
-import com.declarew.Declare_w;
-import com.httpw.HttpDownloader;
-import com.modelw.Notify;
-import com.modelw.Order;
-import com.utilsw.JsonUtils;
-import com.utilsw.MenuUtils;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.http.HttpDownloader;
+import com.diancanw.model.Notify;
+import com.diancanw.model.Order;
+import com.diancanw.utils.JsonUtils;
+import com.diancanw.utils.MenuUtils;
 
 import cn.jpush.android.api.JPushInterface;
 import android.R.integer;
@@ -59,6 +59,11 @@ public class JPReceiver extends BroadcastReceiver {
     	GetOrder(notify.getOid(), context);
 	}
 	
+	/**
+	 * 根据id获取订单
+	 * @param oid
+	 * @param context
+	 */
 	public void GetOrder(int oid,Context context){
 		try {
 			Declare_w declare_w=(Declare_w)context.getApplicationContext();

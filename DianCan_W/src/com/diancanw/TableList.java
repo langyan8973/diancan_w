@@ -11,18 +11,19 @@ import java.util.TimerTask;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 
-import com.animationw.HistoryRotateAnim;
-import com.customw.CategoryListAdapter;
-import com.customw.CustomViewBinder;
-import com.declarew.Declare_w;
-import com.httpw.HttpDownloader;
-import com.modelw.Category;
-import com.modelw.Desk;
-import com.modelw.DeskType;
-import com.modelw.Order;
-import com.utilsw.DisplayUtil;
-import com.utilsw.JsonUtils;
-import com.utilsw.MenuUtils;
+import com.diancanw.animation.HistoryRotateAnim;
+import com.diancanw.animation.Rotate3dAnimation;
+import com.diancanw.custom.CategoryListAdapter;
+import com.diancanw.custom.CustomViewBinder;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.http.HttpDownloader;
+import com.diancanw.model.Category;
+import com.diancanw.model.Desk;
+import com.diancanw.model.DeskType;
+import com.diancanw.model.Order;
+import com.diancanw.utils.DisplayUtil;
+import com.diancanw.utils.JsonUtils;
+import com.diancanw.utils.MenuUtils;
 
 import android.R.integer;
 import android.R.string;
@@ -44,11 +45,13 @@ import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.view.animation.Animation.AnimationListener;
@@ -56,6 +59,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -76,9 +80,7 @@ public class TableList extends Activity {
 	CategoryListAdapter typeAdapter;
 	SimpleAdapter gridSimpleAdapter;
 	SimpleAdapter listSimpleAdapter;
-	RelativeLayout rootLayout;
-	LinearLayout searchLayout;
-	LinearLayout gridLayout;
+	ViewGroup rootLayout;
 	LinearLayout listLayout;
 	LinearLayout typeLayout;
 	TextView typeTextView;
@@ -101,30 +103,7 @@ public class TableList extends Activity {
 	EditText input;
 	Declare_w m_Declare;
 	
-	private Handler httpHandler = new Handler() {  
-        public void handleMessage (Message msg) {//此方法在ui线程运行   
-            switch(msg.what) {  
-            case 0: 
-            	String errString=msg.obj.toString();
-            	ShowError(errString);
-                break;   
-            case 1: 
-            	InitDeskTypes();
-                break;  
-            case 2:
-            	GetDeskList();
-            	break;
-            case 3:
-            	String jsString=msg.obj.toString();
-            	ResponseTable(jsString);
-            	break;
-            case 4:
-            	String strJs=msg.obj.toString();
-            	ResponseOrder(strJs);
-            	break;
-            }  
-        }  
-    }; 
+	private Handler httpHandler = new HandlerExtension(); 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -134,28 +113,8 @@ public class TableList extends Activity {
         
         Init();
 		
-		rootLayout=(RelativeLayout)findViewById(R.id.contentFrame);
-		gridLayout=new LinearLayout(this);
-		gridLayout.setId(100);
-		RelativeLayout.LayoutParams lp1=new RelativeLayout.LayoutParams(android.widget.RelativeLayout.LayoutParams.FILL_PARENT,
-				android.widget.RelativeLayout.LayoutParams.FILL_PARENT);
-		gridLayout.setLayoutParams(lp1);
-		gridLayout.setBackgroundColor(Color.parseColor("#FFFFFFFF"));
-		gridLayout.setNextFocusDownId(R.id.searchExt);
-		
-		listLayout=new LinearLayout(this);
-		listLayout.setId(101);
-		RelativeLayout.LayoutParams lp2=new RelativeLayout.LayoutParams(android.widget.RelativeLayout.LayoutParams.FILL_PARENT,
-				android.widget.RelativeLayout.LayoutParams.FILL_PARENT);
-		listLayout.setLayoutParams(lp2);
-		listLayout.setOrientation(LinearLayout.VERTICAL);
-		listLayout.setBackgroundColor(Color.parseColor("#FFCCCCCC"));
-		
-		rootLayout.addView(gridLayout);
-		gridLayout.layout(0, 0, sWidth, sHeight);
-		gridLayout.setVisibility(View.INVISIBLE);
-		rootLayout.addView(listLayout);
-		listLayout.layout(0, 0, sWidth, sHeight);
+		rootLayout=(ViewGroup)findViewById(R.id.contentFrame);
+		listLayout=(LinearLayout)findViewById(R.id.listLayout);
 		listVisibility=true;
 		
 		typeLayout=(LinearLayout)findViewById(R.id.typelayout);
@@ -164,36 +123,16 @@ public class TableList extends Activity {
 		typeTextView=(TextView)findViewById(R.id.TxtDeskType);
 		typeTextView.setOnClickListener(new TypeTxtOnclick());
 		
-		mGridView=new GridView(this);
-		mGridView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT));
-		mGridView.setNumColumns(GridView.AUTO_FIT);
-		mGridView.setVerticalSpacing(DisplayUtil.dip2px(6.7f));
-		mGridView.setHorizontalSpacing(DisplayUtil.dip2px(6.7f));
-		mGridView.setColumnWidth(DisplayUtil.dip2px(80));
-		mGridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);		
-		gridLayout.addView(mGridView);	
-		
-		LayoutInflater inflater = (LayoutInflater)this.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
-		searchLayout = (LinearLayout)inflater.inflate(R.layout.searchlayout, null);
-		
-		int lHeight=DisplayUtil.dip2px(53);
-		LayoutParams lParams=new LayoutParams(LayoutParams.FILL_PARENT,lHeight);
-		searchLayout.setLayoutParams(lParams);
-		listLayout.addView(searchLayout);
-		searchEditText=(EditText)searchLayout.findViewById(R.id.searchExt);
+		searchEditText=(EditText)findViewById(R.id.searchExt);
 		searchEditText.addTextChangedListener(new EditTextChange());
 		searchEditText.setOnClickListener(new EditTextClick());
 		
-		clearImg=(ImageView)searchLayout.findViewById(R.id.ImgClear);
+		clearImg=(ImageView)findViewById(R.id.ImgClear);
 		clearImg.setOnClickListener(new ClearOnClick());
 		clearImg.setVisibility(View.INVISIBLE);
 		
-		mListView=new ListView(this);
-		int cHeight=sHeight;
-		mListView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,cHeight));
-		mListView.setCacheColorHint(Color.argb(0, 0, 0, 0));
-		listLayout.addView(mListView);
-		
+		mGridView=(GridView)findViewById(R.id.deskGrid);
+		mListView=(ListView)findViewById(R.id.deskList);
 		mGridView.setOnItemClickListener(new GridItemClickListener());
 		mListView.setOnItemClickListener(new ItemClickListener());
 		
@@ -205,8 +144,9 @@ public class TableList extends Activity {
 		
 		input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
-
+        
         RequestRecipeTypes();
+        
 	}
 	
 	@Override
@@ -345,6 +285,7 @@ public class TableList extends Activity {
 					httpHandler.obtainMessage(0,"获取餐桌列表失败").sendToTarget();
 				}
 				else {
+					
 					httpHandler.obtainMessage(2).sendToTarget();
 				}
 			}
@@ -362,7 +303,10 @@ public class TableList extends Activity {
 			for(iterator=deskList.iterator();iterator.hasNext();)
 			{
 				Desk desk=iterator.next();
-				mDeskList.add(desk);
+				if(desk.getWid()==0||desk.getWid()==m_Declare.loginResponse.getWaiterid()){
+					
+					mDeskList.add(desk);
+				}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -396,7 +340,7 @@ public class TableList extends Activity {
 		else {
 			listSimpleAdapter.notifyDataSetChanged();
 		}
-		
+		rootLayout.setPersistentDrawingCache(ViewGroup.PERSISTENT_ANIMATION_CACHE);
 	}
 	
 	/***
@@ -452,6 +396,7 @@ public class TableList extends Activity {
 		else {
 			listSimpleAdapter.notifyDataSetChanged();
 		}
+		rootLayout.setPersistentDrawingCache(ViewGroup.PERSISTENT_ANIMATION_CACHE);
 	}
 	
 	/***
@@ -620,6 +565,24 @@ public class TableList extends Activity {
 			}
 		});
 		v1.startAnimation(sAnimation);
+	}
+	
+	private void applyRotation(float start, float end) { 
+		// 计算中心点 
+		final float centerX = rootLayout.getWidth() / 2.0f; 
+		final float centerY = rootLayout.getHeight() / 2.0f;
+
+		// Create a new 3D rotation with the supplied parameter 
+		// The animation listener is used to trigger the next animation 
+		final Rotate3dAnimation rotation = 
+		new Rotate3dAnimation(start, end, centerX, centerY, 310.0f, true); 
+		rotation.setDuration(300); 
+		rotation.setFillAfter(true); 
+		rotation.setInterpolator(new AccelerateInterpolator()); 
+		//设置监听 
+		rotation.setAnimationListener(new DisplayNextView());
+
+		rootLayout.startAnimation(rotation); 
 	}
 	
 	/**
@@ -817,6 +780,31 @@ public class TableList extends Activity {
 		}
 	}
 	
+	private final class HandlerExtension extends Handler {
+		public void handleMessage (Message msg) {//此方法在ui线程运行   
+            switch(msg.what) {  
+            case 0: 
+            	String errString=msg.obj.toString();
+            	ShowError(errString);
+                break;   
+            case 1: 
+            	InitDeskTypes();
+                break;  
+            case 2:
+            	GetDeskList();
+            	break;
+            case 3:
+            	String jsString=msg.obj.toString();
+            	ResponseTable(jsString);
+            	break;
+            case 4:
+            	String strJs=msg.obj.toString();
+            	ResponseOrder(strJs);
+            	break;
+            }  
+        }
+	}
+
 	/***
 	 * 点击餐桌类别框
 	 * @author liuyan
@@ -869,15 +857,14 @@ public class TableList extends Activity {
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
 			if(listVisibility)
-			{			
-				StartRotateAnimation(listLayout,gridLayout);
+			{		
+				applyRotation(0, 90);
 				imgControl.setImageResource(R.drawable.image);
 			}
 			else {
-				StartBackRotateAnimation(gridLayout, listLayout);
+				applyRotation(0, -90);
 				imgControl.setImageResource(R.drawable.list);
 			}
-			listVisibility=!listVisibility;
 		}
 		
 	}
@@ -1086,5 +1073,54 @@ public class TableList extends Activity {
 //			imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
 		}
 		
+	}
+	
+	private final class DisplayNextView implements Animation.AnimationListener { 
+
+		private DisplayNextView() { 
+		}
+
+		public void onAnimationStart(Animation animation) { 
+		} 
+		//动画结束 
+		public void onAnimationEnd(Animation animation) { 
+			rootLayout.post(new SwapViews()); 
+		}
+
+		public void onAnimationRepeat(Animation animation) { 
+		} 
+	}
+	
+	private final class SwapViews implements Runnable { 
+
+		public SwapViews() { 
+		}
+
+		public void run() { 
+			final float centerX = rootLayout.getWidth() / 2.0f; 
+			final float centerY = rootLayout.getHeight() / 2.0f; 
+			Rotate3dAnimation rotation;
+	
+			if (listVisibility) { 
+				//显示GirdView 
+				listLayout.setVisibility(View.GONE); 
+				mGridView.setVisibility(View.VISIBLE); 
+				mGridView.requestFocus();
+				rotation = new Rotate3dAnimation(-90, 0, centerX, centerY, 310.0f, false);
+			} else { 
+				//返回listview 
+				mGridView.setVisibility(View.GONE); 
+				listLayout.setVisibility(View.VISIBLE); 
+				listLayout.requestFocus();
+				rotation = new Rotate3dAnimation(90, 0, centerX, centerY, 310.0f, false); 
+			}
+			listVisibility=!listVisibility;
+	
+			rotation.setDuration(300); 
+			rotation.setFillAfter(true); 
+			rotation.setInterpolator(new DecelerateInterpolator()); 
+			//开始动画 
+			rootLayout.startAnimation(rotation); 
+		} 
 	}
 }

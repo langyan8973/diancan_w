@@ -1,31 +1,22 @@
 package com.diancanw;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.lang.reflect.Type;
-
 import cn.jpush.android.api.BasicPushNotificationBuilder;
 import cn.jpush.android.api.JPushInterface;
 
-import com.declarew.Declare_w;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.httpw.HttpDownloader;
-import com.modelw.LoginResponse;
-import com.utilsw.DisplayUtil;
-import com.utilsw.FileUtils;
-import com.utilsw.JsonUtils;
-import com.utilsw.MenuUtils;
+import com.diancanw.declare.Declare_w;
+import com.diancanw.http.HttpDownloader;
+import com.diancanw.model.LoginResponse;
+import com.diancanw.utils.DisplayUtil;
+import com.diancanw.utils.FileUtils;
+import com.diancanw.utils.MenuUtils;
 
 import android.app.Activity;
 import android.app.Notification;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Window;
@@ -40,13 +31,28 @@ public class InitPage extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.initpage);
         Init();
-        Declare_w declare_w=(Declare_w)InitPage.this.getApplicationContext();
+	   
+	}
+	
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		
+		Declare_w declare_w=(Declare_w)InitPage.this.getApplicationContext();
         String udid =  JPushInterface.getUdid(getApplicationContext());
         declare_w.udidString=udid;
+        try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         //判断用户信息是否存在
         SharedPreferences userInfo = getSharedPreferences("user_info", 0);
         String token = userInfo.getString("token", "");
         int restaurantid = userInfo.getInt("restaurantid", 0);
+        int waiterid=userInfo.getInt("waiterid", 0);
         if(TextUtils.isEmpty(token)){
         	RegisterUdid(udid);
         	Intent intent=new Intent(this,LoginPage.class);
@@ -58,15 +64,15 @@ public class InitPage extends Activity {
         //读取用户信息
         LoginResponse loginResponse=new LoginResponse();
         loginResponse.setRestaurantid(restaurantid);
+        loginResponse.setWaiterid(waiterid);
         loginResponse.setToken(token);
         declare_w.loginResponse=loginResponse;
         
 		Intent intent=new Intent(this,main.class);
         startActivity(intent);
         this.finish();
-	   
 	}
-	
+
 	/***
 	 * 初始化
 	 */
@@ -84,13 +90,13 @@ public class InitPage extends Activity {
         
         sWidth = DisplayUtil.dip2px(DisplayUtil.DPWIDTH);
 		sHeight=DisplayUtil.dip2px(DisplayUtil.DPHEIGHT-108);
-		FileUtils.cacheDir  = new File("/sdcard/ChiHuoPro/MenuImg/");
+		String filepathString=Environment.getExternalStorageDirectory().getPath()+"/ChiHuoPro/MenuImg/";
+		FileUtils.cacheDir  = new File(filepathString);
 		
         if (!FileUtils.cacheDir.exists()) {
 			FileUtils.cacheDir.mkdirs();
 		}
 		MenuUtils.initUrl="http://"+getResources().getString(R.string.url_service);
-        MenuUtils.updateUrl="http://"+getResources().getString(R.string.url_service);
         MenuUtils.imageUrl="http://"+getResources().getString(R.string.image_service);
         //启用图片缓存
       	HttpDownloader.enableHttpResponseCache();
@@ -111,7 +117,7 @@ public class InitPage extends Activity {
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					String resultString = HttpDownloader.RegisterUdid(udid,MenuUtils.initUrl+ "device");
+					HttpDownloader.RegisterUdid(udid,MenuUtils.initUrl+ "device");
 					
 				} catch (Throwable e) {
 					// TODO Auto-generated catch block
@@ -121,20 +127,5 @@ public class InitPage extends Activity {
 		}).start();
 	}
 	
-	public String ReadLoginInfo() throws IOException
-	{
-		FileInputStream inputStream=this.openFileInput("Login.txt");
-        ByteArrayOutputStream outStream=new ByteArrayOutputStream();  
-        byte[] buffer=new byte[1024];  
-        int len=0;  
-        while ((len=inputStream.read(buffer))!=-1){  
-            outStream.write(buffer, 0, len);  
-        }  
-        outStream.close();  
-        byte[] data=outStream.toByteArray();  
-        String jsonstr=new String(data);  
-        return jsonstr; 
-		
-	}
 
 }

@@ -2,17 +2,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:id="@+id/tablelist_layout" 
-    android:background="#FFCCCCCC">
+    style="@style/Widget.RelativeLayout.gray"
+    >
     <RelativeLayout android:id="@+id/titlebar"
         android:layout_width="fill_parent"
         android:layout_height="47dip"
-        android:paddingLeft="3dip"
-        android:paddingRight="3dip"
-        android:paddingTop="3dip"
-        android:paddingBottom="3dip"
-        android:background="@drawable/hejititle">
+        style="@style/Widget.RelativeLayout.TopBarLayout"
+        >
         <ProgressBar android:id="@+id/httppro"
 		      android:layout_width="wrap_content" 
 		      android:layout_height="wrap_content"
@@ -23,36 +20,58 @@
         <TextView android:layout_width="67dip"
             android:layout_height="40dip"
             android:layout_centerInParent="true"
-            android:gravity="center"
-            android:text="种类"
-            android:textColor="#FFFFFFFF"
-            android:id="@+id/TxtDeskType"/>
+            android:id="@+id/TxtDeskType"
+            style="@style/Widget.TextView.CategoryText"
+            />
         <ImageView android:id="@+id/imgcontrol"
 	        android:layout_width="40dip"
 	        android:layout_height="40dip"
 	        android:layout_centerVertical="true"
 	        android:layout_toRightOf="@+id/TxtDeskType"
-	        android:scaleType="fitXY"
-	        android:src="@drawable/list"
+	        style="@style/Widget.Image.DisplayControl"
 	        />
     </RelativeLayout> 
-	<RelativeLayout android:id="@+id/contentFrame"
+	<FrameLayout android:id="@+id/contentFrame"
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
-	    android:layout_below="@+id/titlebar">
+	    android:layout_alignParentBottom="true"
+	    android:layout_below="@+id/titlebar"
+	    style="@style/DeskListFrame"
+	    >
+	    <LinearLayout android:id="@+id/listLayout"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        style="@style/Widget.LinearLayout.vertical"
+	        >
+	       <include android:layout_width="fill_parent"
+	           android:layout_height="53dip"
+	           layout="@layout/searchlayout"
+	           /> 
+	       <ListView android:id="@+id/deskList"
+	           android:layout_width="fill_parent"
+	           android:layout_height="fill_parent"
+	           style="@style/Widget.ListView.DeskList"
+	           ></ListView> 
+	    </LinearLayout>
+	    <GridView android:id="@+id/deskGrid"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        style="@style/Widget.GridView"
+	        ></GridView>
 	    
-	    
-	</RelativeLayout>  
+	</FrameLayout>  
 	<LinearLayout android:id="@+id/typelayout"
 	    android:layout_width="133dip"
 	    android:layout_height="87dip"
 	    android:layout_below="@+id/titlebar"
 	    android:layout_centerHorizontal="true"
-	    android:background="#88000000">
+	    style="@style/Widget.LinearLayout.CategoryBack"
+	    >
 	    <ListView android:id="@+id/ListDeskType"
 	        android:layout_width="fill_parent"
 	        android:layout_height="fill_parent"
-		    android:cacheColorHint="#00000000">
+	        style="@style/Widget.ListView"
+		    >
 	        
 	    </ListView>
 	</LinearLayout>
