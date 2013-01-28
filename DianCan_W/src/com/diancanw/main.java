@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.http.client.ClientProtocolException;
 
-import com.diancanw.declare.Declare_w;
+import com.diancanw.declare.DiancanwApp;
 import com.diancanw.http.HttpDownloader;
 import com.diancanw.model.Order;
 import com.diancanw.utils.JsonUtils;
@@ -204,7 +204,7 @@ public class main extends TabActivity {
 		SharedPreferences userInfo = getSharedPreferences("user_info", 0);
 		userInfo.edit().putString("token","").commit();
 	    userInfo.edit().putInt("restaurantid", 0).commit();
-	    Declare_w declare_w=(Declare_w)this.getApplicationContext();
+	    DiancanwApp declare_w=(DiancanwApp)this.getApplicationContext();
 	    declare_w.loginResponse=null;
 	}
 	

@@ -14,7 +14,7 @@ import com.diancanw.model.ServiceMess;
 import android.app.Application;
 import android.app.Notification;
 
-public class Declare_w extends Application {
+public class DiancanwApp extends Application {
 
 	public boolean isMessPage=false;
 	public ArrayList<ServiceMess> messArrayList=new ArrayList<ServiceMess>();

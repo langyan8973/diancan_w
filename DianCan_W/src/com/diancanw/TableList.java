@@ -1,22 +1,21 @@
 package com.diancanw;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import org.apache.http.client.ClientProtocolException;
-import org.json.JSONException;
-
 import com.diancanw.animation.HistoryRotateAnim;
 import com.diancanw.animation.Rotate3dAnimation;
 import com.diancanw.custom.CategoryListAdapter;
 import com.diancanw.custom.CustomViewBinder;
-import com.diancanw.declare.Declare_w;
+import com.diancanw.declare.DiancanwApp;
 import com.diancanw.http.HttpDownloader;
+import com.diancanw.http.HttpHandler;
+import com.diancanw.http.HttpRequestCallback;
+import com.diancanw.http.activitytools.DeskListHttpCallback;
+import com.diancanw.http.activitytools.HttpToolForDeskList;
 import com.diancanw.model.Category;
 import com.diancanw.model.Desk;
 import com.diancanw.model.DeskType;
@@ -24,31 +23,22 @@ import com.diancanw.model.Order;
 import com.diancanw.utils.DisplayUtil;
 import com.diancanw.utils.JsonUtils;
 import com.diancanw.utils.MenuUtils;
-
-import android.R.integer;
-import android.R.string;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
@@ -57,21 +47,19 @@ import android.view.animation.TranslateAnimation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class TableList extends Activity {
+public class TableList extends Activity implements DeskListHttpCallback,OnClickListener,
+					OnItemClickListener,TextWatcher{
 	List<DeskType> types;
 	List<Desk> deskList;
 	List<Desk> mDeskList;
@@ -91,7 +79,6 @@ public class TableList extends Activity {
 	ImageView clearImg;
 	ImageView imgControl;
 	ProgressBar mProgress;
-	private SharedPreferences sharedPrefs;
 	int sWidth;
 	int sHeight;
 	boolean listVisibility;
@@ -99,18 +86,16 @@ public class TableList extends Activity {
 	private final int DIALOG_SEARCH = 0x100;
 	HashMap<String, Object> selectedItem;
 	
-	private final Handler mHandler = new Handler();
 	EditText input;
-	Declare_w m_Declare;
+	DiancanwApp m_Declare;
+	HttpToolForDeskList mHttpToolForDeskList;
 	
-	private Handler httpHandler = new HandlerExtension(); 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.tablelist);
-        
         Init();
 		
 		rootLayout=(ViewGroup)findViewById(R.id.contentFrame);
@@ -121,31 +106,31 @@ public class TableList extends Activity {
 		typeLayout.setVisibility(View.GONE);
 		typeList=(ListView)findViewById(R.id.ListDeskType);
 		typeTextView=(TextView)findViewById(R.id.TxtDeskType);
-		typeTextView.setOnClickListener(new TypeTxtOnclick());
+		typeTextView.setOnClickListener(this);
 		
 		searchEditText=(EditText)findViewById(R.id.searchExt);
-		searchEditText.addTextChangedListener(new EditTextChange());
-		searchEditText.setOnClickListener(new EditTextClick());
+		searchEditText.addTextChangedListener(this);
+		searchEditText.setOnClickListener(this);
 		
 		clearImg=(ImageView)findViewById(R.id.ImgClear);
-		clearImg.setOnClickListener(new ClearOnClick());
+		clearImg.setOnClickListener(this);
 		clearImg.setVisibility(View.INVISIBLE);
 		
 		mGridView=(GridView)findViewById(R.id.deskGrid);
 		mListView=(ListView)findViewById(R.id.deskList);
-		mGridView.setOnItemClickListener(new GridItemClickListener());
-		mListView.setOnItemClickListener(new ItemClickListener());
+		mGridView.setOnItemClickListener(this);
+		mListView.setOnItemClickListener(this);
 		
 		imgControl=(ImageView)findViewById(R.id.imgcontrol);
-		imgControl.setOnClickListener(new imgOnClick());
+		imgControl.setOnClickListener(this);
 		
 		mProgress=(ProgressBar)findViewById(R.id.httppro);
 		mProgress.setVisibility(View.INVISIBLE);
 		
 		input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        
-        RequestRecipeTypes();
+        mHttpToolForDeskList=new HttpToolForDeskList(m_Declare, this);
+        mHttpToolForDeskList.RequestRecipeTypes();
         
 	}
 	
@@ -154,6 +139,162 @@ public class TableList extends Activity {
 		// TODO Auto-generated method stub
 		super.onResume();
 		RequestTypes();
+	}
+	
+	@Override
+	public void RequestError(String errString) {
+		// TODO Auto-generated method stub
+		ShowError(errString);
+	}
+	
+	@Override
+	public void onClick(View v) {
+		// TODO Auto-generated method stub
+		switch (v.getId()) {
+		case R.id.TxtDeskType:
+			if(typeLayout.getVisibility()==View.GONE)
+			{
+				ExpandList();
+			}
+			else {
+				HideList();
+			}
+			break;
+		case R.id.searchExt:
+			//弹出软键盘
+	        searchEditText.requestFocus();
+			break;
+		case R.id.ImgClear:
+			searchEditText.setText("");
+			break;
+		case R.id.imgcontrol:
+			if(listVisibility)
+			{		
+				applyRotation(0, 90);
+				imgControl.setImageResource(R.drawable.image);
+			}
+			else {
+				applyRotation(0, -90);
+				imgControl.setImageResource(R.drawable.list);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		// TODO Auto-generated method stub
+		if(arg0.getId()==R.id.ListDeskType){
+			selectDeskType=types.get(arg2);
+			String nameString=types.get(arg2).getName();
+			typeAdapter.setSelectedName(nameString);
+			typeTextView.setText(nameString);
+			RequestDesklist();
+			HideList();
+			return;
+		}
+		
+		HashMap<String, Object> item=(HashMap<String, Object>) arg0.getItemAtPosition(arg2); 
+	    if(item.get("status")!=null)
+	    {
+	    	String oidString=item.get("oid").toString();
+	    	RequestOrderByOid(oidString);
+
+            return;
+	    }
+	    selectedItem=item;
+
+	    TableList.this.showDialog(DIALOG_SEARCH);
+	    //弹出软键盘
+        input.requestFocus();
+        Timer timer = new Timer(); //设置定时器
+        timer.schedule(new TimerTask() {
+        @Override
+        	public void run() { //弹出软键盘的代码
+        		InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
+        		imm.showSoftInput(input, InputMethodManager.RESULT_SHOWN);
+        	}
+        }, 300); //设置300毫秒的时长
+	}
+	
+	
+	@Override
+	public void afterTextChanged(Editable s) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void beforeTextChanged(CharSequence s, int start, int count,
+			int after) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onTextChanged(CharSequence s, int start, int before, int count) {
+		// TODO Auto-generated method stub
+		if(count==0)
+		{
+			clearImg.setVisibility(View.INVISIBLE);
+		}
+		else {
+			clearImg.setVisibility(View.VISIBLE);
+		}
+		Search(s.toString());
+	}
+	
+	/***
+	 * 弹出对话框
+	 */
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		// TODO Auto-generated method stub
+		switch(id){
+		case DIALOG_SEARCH:
+			
+			return new AlertDialog.Builder(this)
+			
+			.setTitle("输入人数").setView(input)
+			.setPositiveButton("确定", new DialogInterface.OnClickListener(){
+				
+				public void onClick(DialogInterface dialog, int which) {
+					String value = input.getText().toString();
+					if(value.equals(""))
+					{
+						//隐藏软键盘
+						InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
+						imm.hideSoftInputFromWindow(input.getWindowToken(), 0); 
+						Toast toast = Toast.makeText(TableList.this, "没有输入就餐人数，开台失败。", Toast.LENGTH_SHORT); 
+			            toast.show();
+						return;
+					}
+					
+	                int count=Integer.parseInt(value);		
+					int id=(Integer)(selectedItem.get("id"));
+					//隐藏软键盘
+					InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
+					imm.hideSoftInputFromWindow(input.getWindowToken(), 0);  
+					
+					RequestTable(id, count);
+				}
+			
+			})
+			.setNegativeButton("取消", new DialogInterface.OnClickListener(){
+				
+				public void onClick(DialogInterface dialog, int which) {
+					//隐藏软键盘
+					InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
+					imm.hideSoftInputFromWindow(input.getWindowToken(), 0);  
+				}
+			
+			}).create();			
+		default:
+			return null;
+			
+		}
 	}
 
 	/***
@@ -173,89 +314,15 @@ public class TableList extends Activity {
         
         sWidth = DisplayUtil.dip2px(DisplayUtil.DPWIDTH);
 		sHeight=DisplayUtil.dip2px(DisplayUtil.DPHEIGHT-108);	
-		m_Declare=(Declare_w)this.getApplicationContext();
+		m_Declare=(DiancanwApp)this.getApplicationContext();
 	}
 	
 	/***
-	 * 新启线程请求餐桌类别
+	 * 请求餐桌类别
 	 */
 	private void RequestTypes() {
 		mProgress.setVisibility(View.VISIBLE);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				types=MenuUtils.getDeskTypes(m_Declare.loginResponse.getRestaurantid());
-				if(types==null||types.size()==0)
-				{
-					httpHandler.obtainMessage(0,"获取餐桌类别失败！").sendToTarget();
-				}
-				else {
-					httpHandler.obtainMessage(1).sendToTarget();
-				}
-				
-			}
-		}).start();
-	}
-	
-	/***
-	 * 新启线程请求菜品类别
-	 */
-	private void RequestRecipeTypes() {
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				List<Category> categories=MenuUtils.getAllCategory(m_Declare.loginResponse.getRestaurantid());
-				if(categories==null||categories.size()==0)
-				{
-					httpHandler.obtainMessage(0,"获取菜品类别失败！").sendToTarget();
-				}
-				else {
-					Iterator<Category> iterator;
-					HashMap<String, String> cathash=new HashMap<String, String>();
-					for(iterator=categories.iterator();iterator.hasNext();){
-						Category category=iterator.next();
-						cathash.put(category.getId().toString(), category.getName());
-					}
-					m_Declare.hashTypes=cathash;
-				}
-				
-			}
-		}).start();
-	}
-	
-	/***
-	 * 初始化餐桌类别列表
-	 */
-	private void InitDeskTypes()
-	{		
-		mProgress.setVisibility(View.INVISIBLE);
-		ArrayList<HashMap<String, Object>> typeHashMaps=new ArrayList<HashMap<String,Object>>();
-		for(final DeskType deskType:types)
-		{		
-			HashMap<String, Object> map=new HashMap<String, Object>();
-			map.put("name", deskType.getName()); 
-			map.put("id", deskType.getId());
-			typeHashMaps.add(map);
-		}
-		DeskType type=types.get(0);
-		selectDeskType=type;
-		typeAdapter=new CategoryListAdapter(this, typeHashMaps,
-				R.layout.categorylist_item, new String[] { "name","id" },
-				new int[] { R.id.category_name,R.id.category_id});
-		typeAdapter.setViewBinder(new CustomViewBinder());
-		typeAdapter.setSelectedName(type.getName());
-		typeList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-		typeList.setAdapter(typeAdapter);
-		typeList.setOnItemClickListener(new TypeItemClick());
-		
-		typeTextView.setText(type.getName());
-		
-		RequestDesklist();
-		
+		mHttpToolForDeskList.RequestTypes();
 	}
 	
 	/***
@@ -273,31 +340,64 @@ public class TableList extends Activity {
 		}
 		deskList.clear();
 		mDeskList.clear();
-		
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				deskList=MenuUtils.getDesksByTid(selectDeskType.getId(),m_Declare.loginResponse.getRestaurantid());
-				if(deskList==null||deskList.size()==0)
-				{
-					httpHandler.obtainMessage(0,"获取餐桌列表失败").sendToTarget();
-				}
-				else {
-					
-					httpHandler.obtainMessage(2).sendToTarget();
-				}
-			}
-		}).start();
+		mHttpToolForDeskList.RequestDeskListByTid(selectDeskType.getId());
 	}
 	
 	/***
-	 * 显示餐桌列表
+	 * 开台操作
+	 * @param id
+	 * @param count
 	 */
-	public void GetDeskList()
-	{		
+	public void RequestTable(final int id,final int count)
+	{
+		mProgress.setVisibility(View.VISIBLE);
+		mHttpToolForDeskList.RequestTable(id, count);
+	}
+	
+	/**
+	 * 通过id获取订单
+	 * @param oidString
+	 */
+	public void RequestOrderByOid(final String oidString)
+	{
+		mProgress.setVisibility(View.VISIBLE);
+		mHttpToolForDeskList.RequestOrderByOid(oidString);
+	}
+	
+	
+	@Override
+	public void SetDeskTypes(List<DeskType> deskTypes) {
+		// TODO Auto-generated method stub
 		mProgress.setVisibility(View.INVISIBLE);
+		types=deskTypes;
+		ArrayList<HashMap<String, Object>> typeHashMaps=new ArrayList<HashMap<String,Object>>();
+		for(final DeskType deskType:types)
+		{		
+			HashMap<String, Object> map=new HashMap<String, Object>();
+			map.put("name", deskType.getName()); 
+			map.put("id", deskType.getId());
+			typeHashMaps.add(map);
+		}
+		DeskType type=types.get(0);
+		selectDeskType=type;
+		typeAdapter=new CategoryListAdapter(this, typeHashMaps,
+				R.layout.categorylist_item, new String[] { "name","id" },
+				new int[] { R.id.category_name,R.id.category_id});
+		typeAdapter.setViewBinder(new CustomViewBinder());
+		typeAdapter.setSelectedName(type.getName());
+		typeList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+		typeList.setAdapter(typeAdapter);
+		typeList.setOnItemClickListener(this);
+		typeTextView.setText(type.getName());
+		RequestDesklist();
+		
+	}
+
+	@Override
+	public void SetDeskList(List<Desk> desks) {
+		// TODO Auto-generated method stub
+		mProgress.setVisibility(View.INVISIBLE);
+		deskList=desks;
 		try {		
 			Iterator<Desk> iterator;
 			for(iterator=deskList.iterator();iterator.hasNext();)
@@ -341,6 +441,62 @@ public class TableList extends Activity {
 			listSimpleAdapter.notifyDataSetChanged();
 		}
 		rootLayout.setPersistentDrawingCache(ViewGroup.PERSISTENT_ANIMATION_CACHE);
+	}
+
+	@Override
+	public void SetNewOrder(Order order) {
+		// TODO Auto-generated method stub
+		mProgress.setVisibility(View.INVISIBLE);
+
+		try {
+			Bitmap duigouBitmap=MenuUtils.readBitMap(TableList.this, R.drawable.duigou, 1);
+  			selectedItem.put("duigou", duigouBitmap);
+  			selectedItem.put("status", 1);
+  			selectedItem.put("code", order.getCode());
+  			selectedItem.put("oid", order.getId());
+  			gridSimpleAdapter.notifyDataSetChanged();
+  			listSimpleAdapter.notifyDataSetChanged();
+            
+		    Iterator<Desk> iterator;
+		    for(iterator=deskList.iterator();iterator.hasNext();)
+		    {
+		    	Desk dObj=iterator.next();
+		    	if(dObj.getId()==order.getDesk().getId())
+		    	{
+		    		dObj.setOrderStatus(order.getStatus());
+		    		dObj.setCapacity(order.getNumber());
+		    		dObj.setCode(order.getCode());
+		    		dObj.setOid(order.getId());
+		    		break;
+		    	}
+		    }
+		    
+		    
+		    Intent intent=new Intent(this, OrderActivity.class);
+		    intent.putExtra("order", order);
+		    startActivity(intent);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			//自定义的错误，在界面上显示
+			ShowError(e.getMessage());
+            return;
+		}
+	}
+
+	@Override
+	public void SetOrder(Order order) {
+		// TODO Auto-generated method stub
+		mProgress.setVisibility(View.INVISIBLE);
+		try {
+		    Intent intent=new Intent(this, OrderActivity.class);
+		    intent.putExtra("order", order);
+		    startActivity(intent);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			//自定义的错误，在界面上显示
+			ShowError(e.getMessage());
+            return;
+		}
 	}
 	
 	/***
@@ -494,78 +650,6 @@ public class TableList extends Activity {
 	}
 	
 	
-	/***
-	 * 旋转切换效果
-	 * @param v1
-	 * @param v2
-	 */
-	public void StartRotateAnimation(final View v1,final View v2)
-	{
-		v1.clearAnimation();
-		v2.clearAnimation();
-		Animation sAnimation=new HistoryRotateAnim(0, -DisplayUtil.dip2px(60), 0.0f, 0.0f,sWidth/2 , sHeight/2,true);
-		sAnimation.setFillAfter(true);
-		sAnimation.setAnimationListener(new AnimationListener() {
-			
-			@Override
-			public void onAnimationStart(Animation animation) {}
-			
-			@Override
-			public void onAnimationRepeat(Animation animation) {}
-			
-			@Override
-			public void onAnimationEnd(Animation animation) {
-				// TODO Auto-generated method stub
-				rootLayout.removeAllViews();
-				rootLayout.addView(v2);
-				v2.layout(0, 0, sWidth, sHeight);
-				//因为最初将gridLayout隐藏了所以这里要判断并设置可见
-				if(v2.getVisibility()==View.INVISIBLE)
-				{
-					v2.setVisibility(View.VISIBLE);
-				}
-				Animation sAnimation1=new HistoryRotateAnim(DisplayUtil.dip2px(60), 0, 0.0f, 0.0f,sWidth/2, sHeight/2,false);
-				sAnimation1.setFillAfter(true);
-				v2.startAnimation(sAnimation1);
-			}
-		});
-		v1.startAnimation(sAnimation);
-	}
-	
-	/***
-	 * 旋转切换效果
-	 * @param v1
-	 * @param v2
-	 */
-	public void StartBackRotateAnimation(final View v1,final View v2)
-	{
-		v1.clearAnimation();
-		v2.clearAnimation();
-		Animation sAnimation=new HistoryRotateAnim(0, DisplayUtil.dip2px(60), 0.0f, 0.0f,sWidth/2 , sHeight/2,true);
-		sAnimation.setFillAfter(true);
-		sAnimation.setAnimationListener(new AnimationListener() {
-			
-			@Override
-			public void onAnimationStart(Animation animation) {}
-			
-			@Override
-			public void onAnimationRepeat(Animation animation) {}
-			
-			@Override
-			public void onAnimationEnd(Animation animation) {
-				// TODO Auto-generated method stub
-				rootLayout.removeAllViews();
-				rootLayout.addView(v2);
-				v2.layout(0, 0, sWidth, sHeight);
-				Animation sAnimation1=new HistoryRotateAnim(-DisplayUtil.dip2px(60), 0, 0.0f, 0.0f,sWidth/2, sHeight/2,false);
-				sAnimation1.setFillAfter(true);
-				v2.startAnimation(sAnimation1);
-				
-				searchEditText.dispatchWindowFocusChanged(true);
-			}
-		});
-		v1.startAnimation(sAnimation);
-	}
 	
 	private void applyRotation(float start, float end) { 
 		// 计算中心点 
@@ -595,82 +679,6 @@ public class TableList extends Activity {
         toast.show();
 	}
 	
-	/***
-	 * 开台操作（新启线程）
-	 * @param id
-	 * @param count
-	 */
-	public void RequestTable(final int id,final int count)
-	{
-		mProgress.setVisibility(View.VISIBLE);
-		//开台
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				try {
-					String resultString = HttpDownloader.submitOrder(MenuUtils.initUrl, id, count,
-							m_Declare.loginResponse.getRestaurantid(),m_Declare.loginResponse.getToken()
-							,m_Declare.udidString);
-					httpHandler.obtainMessage(3,resultString).sendToTarget();
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					httpHandler.obtainMessage(0,e.getMessage()).sendToTarget();
-				}
-				
-			}
-		}).start();
-		
-			
-	}
-	
-	/***
-	 * 解析开台操作结果，跳转到餐桌页
-	 * @param resultString
-	 */
-	public void ResponseTable(String resultString) {
-		mProgress.setVisibility(View.INVISIBLE);
-
-		try {
-			System.out.println("resultString:"+resultString);
-			Order order=JsonUtils.ParseJsonToOrder(resultString);
-			
-			Bitmap duigouBitmap=MenuUtils.readBitMap(TableList.this, R.drawable.duigou, 1);
-  			selectedItem.put("duigou", duigouBitmap);
-  			selectedItem.put("status", 1);
-  			selectedItem.put("code", order.getCode());
-  			selectedItem.put("oid", order.getId());
-  			gridSimpleAdapter.notifyDataSetChanged();
-  			listSimpleAdapter.notifyDataSetChanged();
-            
-		    Iterator<Desk> iterator;
-		    for(iterator=deskList.iterator();iterator.hasNext();)
-		    {
-		    	Desk dObj=iterator.next();
-		    	if(dObj.getId()==order.getDesk().getId())
-		    	{
-		    		dObj.setOrderStatus(order.getStatus());
-		    		dObj.setCapacity(order.getNumber());
-		    		dObj.setCode(order.getCode());
-		    		dObj.setOid(order.getId());
-		    		break;
-		    	}
-		    }
-		    
-		    
-		    Intent intent=new Intent(this, OrderActivity.class);
-		    intent.putExtra("order", order);
-		    startActivity(intent);
-		} catch (Throwable e) {
-			e.printStackTrace();
-			//自定义的错误，在界面上显示
-			Toast toast = Toast.makeText(TableList.this, e.getMessage(), Toast.LENGTH_SHORT); 
-            toast.show();
-            return;
-		}
-	}
 	
 	/***
 	 * 显示餐桌类别列表
@@ -696,383 +704,6 @@ public class TableList extends Activity {
 		animation.setInterpolator(new AccelerateInterpolator());
 		typeLayout.startAnimation(animation);
 		typeLayout.setVisibility(View.GONE);
-	}
-	
-	/***
-	 * 通过code获取订单
-	 * @param codeString
-	 */
-	public void RequestOrderByCode(final String codeString) {
-		mProgress.setVisibility(View.VISIBLE);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				try {
-					String resultString = HttpDownloader.getString(MenuUtils.initUrl+"orders/desk/"+codeString,
-							m_Declare.loginResponse.getToken(),m_Declare.udidString);
-					if(resultString==null)
-					{
-						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
-						return;
-					}
-					httpHandler.obtainMessage(4,resultString).sendToTarget();
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					httpHandler.obtainMessage(0,e.getMessage()).sendToTarget();
-				}
-			}
-		}).start();
-	}
-	
-	/**
-	 * 通过id获取订单
-	 * @param oidString
-	 */
-	public void RequestOrderByOid(final String oidString)
-	{
-		mProgress.setVisibility(View.VISIBLE);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				try {
-					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+oidString,
-							m_Declare.loginResponse.getToken(),m_Declare.udidString);
-					if(resultString==null)
-					{
-						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
-						return;
-					}
-					httpHandler.obtainMessage(4,resultString).sendToTarget();
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					httpHandler.obtainMessage(0,e.getMessage()).sendToTarget();
-				}
-			}
-		}).start();
-	}
-	
-	/**
-	 * 解析订单并跳转到订单页
-	 * @param jsString
-	 */
-	public void ResponseOrder(String jsString)
-	{
-		mProgress.setVisibility(View.INVISIBLE);
-		try {
-			System.out.println("resultString:"+jsString);
-			Order order=JsonUtils.ParseJsonToOrder(jsString);
-			
-		    Intent intent=new Intent(this, OrderActivity.class);
-		    intent.putExtra("order", order);
-		    startActivity(intent);
-		} catch (Throwable e) {
-			e.printStackTrace();
-			//自定义的错误，在界面上显示
-			Toast toast = Toast.makeText(TableList.this, e.getMessage(), Toast.LENGTH_SHORT); 
-            toast.show();
-            return;
-		}
-	}
-	
-	private final class HandlerExtension extends Handler {
-		public void handleMessage (Message msg) {//此方法在ui线程运行   
-            switch(msg.what) {  
-            case 0: 
-            	String errString=msg.obj.toString();
-            	ShowError(errString);
-                break;   
-            case 1: 
-            	InitDeskTypes();
-                break;  
-            case 2:
-            	GetDeskList();
-            	break;
-            case 3:
-            	String jsString=msg.obj.toString();
-            	ResponseTable(jsString);
-            	break;
-            case 4:
-            	String strJs=msg.obj.toString();
-            	ResponseOrder(strJs);
-            	break;
-            }  
-        }
-	}
-
-	/***
-	 * 点击餐桌类别框
-	 * @author liuyan
-	 *
-	 */
-	class TypeTxtOnclick implements OnClickListener{
-
-		@Override
-		public void onClick(View v) {
-			// TODO Auto-generated method stub
-			if(typeLayout.getVisibility()==View.GONE)
-			{
-				ExpandList();
-			}
-			else {
-				HideList();
-			}
-		}
-		
-	}
-	
-	/***
-	 * 点选餐桌类别
-	 * @author liuyan
-	 *
-	 */
-	class TypeItemClick implements OnItemClickListener{
-
-		@Override
-		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-				long arg3) {
-			// TODO Auto-generated method stub
-			selectDeskType=types.get(arg2);
-			String nameString=types.get(arg2).getName();
-			typeAdapter.setSelectedName(nameString);
-			typeTextView.setText(nameString);
-			RequestDesklist();
-			HideList();
-		}		
-	}
-	
-	/***
-	 * 列表、缩略图切换处理
-	 * @author liuyan
-	 *
-	 */
-	class imgOnClick implements OnClickListener{
-
-		@Override
-		public void onClick(View v) {
-			// TODO Auto-generated method stub
-			if(listVisibility)
-			{		
-				applyRotation(0, 90);
-				imgControl.setImageResource(R.drawable.image);
-			}
-			else {
-				applyRotation(0, -90);
-				imgControl.setImageResource(R.drawable.list);
-			}
-		}
-		
-	}
-	
-	/***
-	 * 列表项点击处理
-	 * @author liuyan
-	 *
-	 */
-	class  ItemClickListener implements OnItemClickListener     
-	{     
-		public void onItemClick(AdapterView<?> arg0,    
-	                                  View arg1,   
-	                                  int arg2,    
-	                                  long arg3    
-	                                  ) {     
-		    HashMap<String, Object> item=(HashMap<String, Object>) arg0.getItemAtPosition(arg2); 
-		    System.out.println("position:"+arg3);
-		    System.out.println("name:"+item.get("title"));
-		    if(item.get("status")!=null)
-		    {
-		    	String oidString=item.get("oid").toString();
-		    	RequestOrderByOid(oidString);
-
-	            return;
-		    }
-		    selectedItem=item;
-
-		    TableList.this.showDialog(DIALOG_SEARCH);
-		    //弹出软键盘
-	        input.requestFocus();
-	        Timer timer = new Timer(); //设置定时器
-	        timer.schedule(new TimerTask() {
-	        @Override
-	        	public void run() { //弹出软键盘的代码
-	        		InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
-	        		imm.showSoftInput(input, InputMethodManager.RESULT_SHOWN);
-	        	}
-	        }, 300); //设置300毫秒的时长
-		} 
-	}
-	
-	/***
-	 * 缩略图表格项点击处理
-	 * @author liuyan
-	 *
-	 */
-	class  GridItemClickListener implements OnItemClickListener     
-	{     
-		public void onItemClick(AdapterView<?> arg0,    
-	                                  View arg1,   
-	                                  int arg2,    
-	                                  long arg3    
-	                                  ) {   
-			TextView view=(TextView)arg1.findViewById(R.id.ItemText);
-			String nameString=view.getText().toString();
-			System.out.println("nameString:"+nameString);
-		    HashMap<String, Object> item=(HashMap<String, Object>) arg0.getItemAtPosition(arg2); 
-		    System.out.println("position:"+arg3);
-		    System.out.println("name:"+item.get("title"));
-		    if(item.get("status")!=null)
-		    {
-		    	String oidString=item.get("oid").toString();
-		    	RequestOrderByOid(oidString);
-
-	            return;
-		    }
-		    selectedItem=item;
-
-		    TableList.this.showDialog(DIALOG_SEARCH);
-		    //弹出软键盘
-	        input.requestFocus();
-	        Timer timer = new Timer(); //设置定时器
-	        timer.schedule(new TimerTask() {
-	        @Override
-	        	public void run() { //弹出软键盘的代码
-	        		InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
-	        		imm.showSoftInput(input, InputMethodManager.RESULT_SHOWN);
-	        		imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-	        	}
-	        }, 300); //设置300毫秒的时长
-		} 
-	}
-	
-	/***
-	 * 弹出对话框
-	 */
-	@Override
-	protected Dialog onCreateDialog(int id) {
-		// TODO Auto-generated method stub
-		switch(id){
-		case DIALOG_SEARCH:
-			
-			return new AlertDialog.Builder(this)
-			
-			.setTitle("输入人数").setView(input)
-			.setPositiveButton("确定", new DialogInterface.OnClickListener(){
-				
-				public void onClick(DialogInterface dialog, int which) {
-					String value = input.getText().toString();
-					if(value.equals(""))
-					{
-						//隐藏软键盘
-						InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
-						imm.hideSoftInputFromWindow(input.getWindowToken(), 0); 
-						Toast toast = Toast.makeText(TableList.this, "没有输入就餐人数，开台失败。", Toast.LENGTH_SHORT); 
-			            toast.show();
-						return;
-					}
-					
-	                int count=Integer.parseInt(value);		
-					int id=(Integer)(selectedItem.get("id"));
-					//隐藏软键盘
-					InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
-					imm.hideSoftInputFromWindow(input.getWindowToken(), 0);  
-					
-					RequestTable(id, count);
-				}
-			
-			})
-			.setNegativeButton("取消", new DialogInterface.OnClickListener(){
-				
-				public void onClick(DialogInterface dialog, int which) {
-					//隐藏软键盘
-					InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
-					imm.hideSoftInputFromWindow(input.getWindowToken(), 0);  
-				}
-			
-			}).create();			
-		default:
-			return null;
-			
-		}
-	}
-	/***
-	 * 搜索输入框文字改变处理
-	 * @author liuyan
-	 *
-	 */
-	class EditTextChange implements TextWatcher{
-
-		@Override
-		public void afterTextChanged(Editable s) {}
-
-		@Override
-		public void beforeTextChanged(CharSequence s, int start, int count,
-				int after) {}
-
-		@Override
-		public void onTextChanged(CharSequence s, int start, int before,
-				int count) {
-			if(count==0)
-			{
-				clearImg.setVisibility(View.INVISIBLE);
-			}
-			else {
-				clearImg.setVisibility(View.VISIBLE);
-			}
-			Search(s.toString());
-		}
-		
-	}
-	
-	/***
-	 * 点击搜索框呼出输入法
-	 * @author liuyan
-	 *
-	 */
-	class EditTextClick implements OnClickListener{
-
-		@Override
-		public void onClick(View v) {
-			// TODO Auto-generated method stub
-
-			//弹出软键盘
-	        searchEditText.requestFocus();
-	        
-//	        searchEditText.setCursorVisible(true);
-//	        Timer timer = new Timer(); //设置定时器
-//	        timer.schedule(new TimerTask() {
-//	        @Override
-//	        	public void run() { //弹出软键盘的代码
-//	        		InputMethodManager imm = (InputMethodManager)getSystemService(TableListPage.this.INPUT_METHOD_SERVICE);
-//	        		imm.showSoftInput(searchEditText, InputMethodManager.RESULT_SHOWN);
-//	        		imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-//	        	}
-//	        }, 100); //设置100毫秒的时长
-		}
-		
-	}
-	
-	
-	/***
-	 * 清空搜索框
-	 * @author liuyan
-	 *
-	 */
-	class ClearOnClick implements OnClickListener{
-
-		@Override
-		public void onClick(View v) {
-			// TODO Auto-generated method stub
-			searchEditText.setText("");
-			//隐藏软键盘
-//			InputMethodManager imm = (InputMethodManager)getSystemService(TableList.this.INPUT_METHOD_SERVICE);
-//			imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
-		}
-		
 	}
 	
 	private final class DisplayNextView implements Animation.AnimationListener { 
@@ -1123,4 +754,5 @@ public class TableList extends Activity {
 			rootLayout.startAnimation(rotation); 
 		} 
 	}
+
 }

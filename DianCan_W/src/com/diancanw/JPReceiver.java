@@ -1,6 +1,6 @@
 package com.diancanw;
 
-import com.diancanw.declare.Declare_w;
+import com.diancanw.declare.DiancanwApp;
 import com.diancanw.http.HttpDownloader;
 import com.diancanw.model.Notify;
 import com.diancanw.model.Order;
@@ -66,7 +66,7 @@ public class JPReceiver extends BroadcastReceiver {
 	 */
 	public void GetOrder(int oid,Context context){
 		try {
-			Declare_w declare_w=(Declare_w)context.getApplicationContext();
+			DiancanwApp declare_w=(DiancanwApp)context.getApplicationContext();
 			String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+declare_w.loginResponse.getRestaurantid()+"/orders/"+oid,
 					declare_w.loginResponse.getToken(),declare_w.udidString);
 			if(resultString==null)
@@ -100,18 +100,6 @@ public class JPReceiver extends BroadcastReceiver {
         msgIntent.addCategory(Intent.CATEGORY_DEFAULT);
         msgIntent.putExtra("message", message);
         msgIntent.putExtra("title", title);
-//        if (null != channel) {
-//            msgIntent.putExtra(Constants.KEY_CHANNEL, channel);
-//        }
-//         
-//        JSONObject all = new JSONObject();
-//        try {
-//            all.put(Constants.KEY_TITLE, title);
-//            all.put(Constants.KEY_MESSAGE, message);
-//            all.put(Constants.KEY_EXTRAS, new JSONObject(extras));
-//        } catch (JSONException e) {
-//        }
-//        msgIntent.putExtra("all", all.toString());
          
         context.sendBroadcast(msgIntent);
 	}

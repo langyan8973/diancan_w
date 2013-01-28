@@ -23,6 +23,15 @@ public class Order implements java.io.Serializable {
 	private Date enttime;
 	private Integer status;
 	private String code;
+	private double price;
+	public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
 	private List<OrderItem> orderItems = new ArrayList<OrderItem>();
 
 	public String getCode() {

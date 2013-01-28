@@ -5,8 +5,8 @@
     style="@style/OrderItemLayout"
     >
     <ImageView android:id="@+id/imgctrl"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="@dimen/thumbnail_size"
+        android:layout_height="@dimen/thumbnail_size"
         android:layout_alignParentLeft="true"
         style="@style/Widget.Image"
         />

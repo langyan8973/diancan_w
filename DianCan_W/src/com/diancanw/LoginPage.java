@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import cn.jpush.android.api.JPushInterface;
 
-import com.diancanw.declare.Declare_w;
+import com.diancanw.declare.DiancanwApp;
 import com.diancanw.http.HttpDownloader;
 import com.diancanw.model.LoginResponse;
 import com.diancanw.model.restaurant;
@@ -104,7 +104,7 @@ public class LoginPage extends Activity {
 			String codeString=m_CodeEditText.getText().toString();
 			String nameString=m_UserNameEditText.getText().toString();
 			String passString=m_PasswordEditText.getText().toString();
-			Declare_w declare_w=(Declare_w)LoginPage.this.getApplicationContext();
+			DiancanwApp declare_w=(DiancanwApp)LoginPage.this.getApplicationContext();
 			String udidString=declare_w.udidString;
 			if(codeString==""||nameString==""||passString==""){
 				ShowToast("登录信息填写不全！");

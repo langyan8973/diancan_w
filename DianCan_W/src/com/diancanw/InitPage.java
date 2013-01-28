@@ -4,7 +4,7 @@ import java.io.File;
 import cn.jpush.android.api.BasicPushNotificationBuilder;
 import cn.jpush.android.api.JPushInterface;
 
-import com.diancanw.declare.Declare_w;
+import com.diancanw.declare.DiancanwApp;
 import com.diancanw.http.HttpDownloader;
 import com.diancanw.model.LoginResponse;
 import com.diancanw.utils.DisplayUtil;
@@ -39,7 +39,7 @@ public class InitPage extends Activity {
 		// TODO Auto-generated method stub
 		super.onResume();
 		
-		Declare_w declare_w=(Declare_w)InitPage.this.getApplicationContext();
+		DiancanwApp declare_w=(DiancanwApp)InitPage.this.getApplicationContext();
         String udid =  JPushInterface.getUdid(getApplicationContext());
         declare_w.udidString=udid;
         try {

@@ -29,7 +29,7 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 	
     <application
-        android:name="com.diancanw.declare.Declare_w"
+        android:name="com.diancanw.declare.DiancanwApp"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" tools:ignore="AllowBackup">
         

@@ -6,8 +6,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.diancanw.custom.CustomViewBinder;
-import com.diancanw.declare.Declare_w;
+import com.diancanw.declare.DiancanwApp;
 import com.diancanw.http.HttpDownloader;
+import com.diancanw.http.HttpHandler;
+import com.diancanw.http.HttpRequestCallback;
+import com.diancanw.http.activitytools.HttpToolForOrderList;
+import com.diancanw.http.activitytools.OrderListHttpCallback;
 import com.diancanw.model.Desk;
 import com.diancanw.model.Order;
 import com.diancanw.utils.DisplayUtil;
@@ -32,7 +36,7 @@ import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
-public class OrderList extends Activity {
+public class OrderList extends Activity implements OrderListHttpCallback,OnItemClickListener {
 
 	List<Order> orders;
 	GridView mGridView;
@@ -40,25 +44,22 @@ public class OrderList extends Activity {
 	
 	ArrayList<HashMap<String, Object>> imghashList;
 	SimpleAdapter gridSimpleAdapter;
-	Declare_w m_Declare;
-	
-	private Handler httpHandler = new HandlerExtension(); 
-	
+	DiancanwApp m_Declare;
+	HttpToolForOrderList httpToolForOrderList;	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.orderlist);
-        
         mGridView=(GridView)findViewById(R.id.ordersGrid);
-		mGridView.setOnItemClickListener(new griditemclick());
+		mGridView.setOnItemClickListener(this);
 		
 		mProgress=(ProgressBar)findViewById(R.id.orderpro);
 		mProgress.setVisibility(View.INVISIBLE);
 		
-		m_Declare=(Declare_w)this.getApplicationContext();
-		
+		m_Declare=(DiancanwApp)this.getApplicationContext();
+		httpToolForOrderList=new HttpToolForOrderList(m_Declare, this);
 	}
 	
 	@Override
@@ -67,39 +68,12 @@ public class OrderList extends Activity {
 		super.onResume();
 		GetOrders();
 	}
-
-	/**
-	 * 获取所有订单
-	 */
-	public void GetOrders(){
-		mProgress.setVisibility(View.VISIBLE);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				orders=MenuUtils.getOrders(m_Declare.loginResponse.getRestaurantid(), m_Declare.loginResponse.getToken(),
-						m_Declare.udidString);
-				if(orders==null)
-				{
-					httpHandler.obtainMessage(0,"获取订单列表失败！").sendToTarget();
-				}
-				else if(orders.size()==0) {
-					httpHandler.obtainMessage(0,"没有订单").sendToTarget();
-				}
-				else {
-					httpHandler.obtainMessage(1).sendToTarget();
-				}
-				
-			}
-		}).start();
-	}
 	
-	/**
-	 * 显示订单表
-	 */
-	public void DisplayGrid(){
+	@Override
+	public void SetOrders(List<Order> orderlist) {
+		// TODO Auto-generated method stub
 		mProgress.setVisibility(View.INVISIBLE);
+		orders=orderlist;
 		if(imghashList==null){
 			imghashList=new ArrayList<HashMap<String,Object>>();
 		}
@@ -138,6 +112,55 @@ public class OrderList extends Activity {
 		}
 		
 	}
+
+	@Override
+	public void SetSelectOrder(Order order) {
+		// TODO Auto-generated method stub
+		mProgress.setVisibility(View.INVISIBLE);
+		try {
+		    Intent intent=new Intent(this, OrderActivity.class);
+		    intent.putExtra("order", order);
+		    startActivity(intent);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			//自定义的错误，在界面上显示
+			ShowError(e.getMessage());
+            return;
+		}
+	}
+
+	
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		// TODO Auto-generated method stub
+		HashMap<String, Object> item=(HashMap<String, Object>) arg0.getItemAtPosition(arg2);
+		String oidString=item.get("id").toString();
+    	RequestOrderByOid(oidString);
+	}
+
+	@Override
+	public void RequestError(String errString) {
+		// TODO Auto-generated method stub
+		ShowError(errString);
+	}
+
+	/**
+	 * 获取所有订单
+	 */
+	public void GetOrders(){
+		mProgress.setVisibility(View.VISIBLE);
+		httpToolForOrderList.RequestOrders();
+	}
+
+	/**
+	 * 通过id获取订单
+	 * @param oidString
+	 */
+	public void RequestOrderByOid(final String oidString)
+	{
+		mProgress.setVisibility(View.VISIBLE);
+		httpToolForOrderList.RequestOrderByOid(oidString);
+	}
 	
 	/***
 	 * 创建表格数据源适配器
@@ -158,59 +181,6 @@ public class OrderList extends Activity {
 	}
 	
 	/**
-	 * 通过id获取订单
-	 * @param oidString
-	 */
-	public void RequestOrderByOid(final String oidString)
-	{
-		mProgress.setVisibility(View.VISIBLE);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				try {
-					String resultString = HttpDownloader.getString(MenuUtils.initUrl+ "restaurants/"+m_Declare.loginResponse.getRestaurantid()+"/orders/"+oidString,
-							m_Declare.loginResponse.getToken(),m_Declare.udidString);
-					if(resultString==null)
-					{
-						httpHandler.obtainMessage(0,"编码错误！").sendToTarget();
-						return;
-					}
-					httpHandler.obtainMessage(2,resultString).sendToTarget();
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					httpHandler.obtainMessage(0,e.getMessage()).sendToTarget();
-				}
-			}
-		}).start();
-	}
-	
-	/**
-	 * 解析订单并跳转到订单页
-	 * @param jsString
-	 */
-	public void ResponseOrder(String jsString)
-	{
-		mProgress.setVisibility(View.INVISIBLE);
-		try {
-			System.out.println("resultString:"+jsString);
-			Order order=JsonUtils.ParseJsonToOrder(jsString);
-			
-		    Intent intent=new Intent(this, OrderActivity.class);
-		    intent.putExtra("order", order);
-		    startActivity(intent);
-		} catch (Throwable e) {
-			e.printStackTrace();
-			//自定义的错误，在界面上显示
-			Toast toast = Toast.makeText(OrderList.this, e.getMessage(), Toast.LENGTH_SHORT); 
-            toast.show();
-            return;
-		}
-	}
-	
-	/**
 	 * 显示错误信息
 	 * @param strMess
 	 */
@@ -219,47 +189,6 @@ public class OrderList extends Activity {
 		Toast toast = Toast.makeText(OrderList.this, strMess, Toast.LENGTH_SHORT); 
         toast.show();
 	}
+
 	
-	private final class HandlerExtension extends Handler {
-		public void handleMessage (Message msg) {//此方法在ui线程运行   
-            switch(msg.what) {  
-            case 0: 
-            	String errString=msg.obj.toString();
-            	ShowError(errString);
-                break;   
-            case 1:
-            	DisplayGrid();
-                break;  
-            case 2:
-            	String strJs=msg.obj.toString();
-            	ResponseOrder(strJs);
-            	break;
-            case 3:
-            	String jsString=msg.obj.toString();
-            	break;
-            case 4:
-            	String strJs1=msg.obj.toString();
-            	break;
-            }  
-        }
-	}
-
-	/**
-	 * 点击表格项
-	 * @author liuyan
-	 *
-	 */
-	class griditemclick implements OnItemClickListener{
-
-		@Override
-		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-				long arg3) {
-			// TODO Auto-generated method stub
-			HashMap<String, Object> item=(HashMap<String, Object>) arg0.getItemAtPosition(arg2);
-			String oidString=item.get("id").toString();
-	    	RequestOrderByOid(oidString);
-		}
-		
-	}
-
 }

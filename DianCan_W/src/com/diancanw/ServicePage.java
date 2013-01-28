@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.diancanw.declare.Declare_w;
+import com.diancanw.declare.DiancanwApp;
 import com.diancanw.model.MessContent;
 import com.diancanw.model.ServiceMess;
 import com.diancanw.utils.MenuUtils;
@@ -30,7 +30,7 @@ public class ServicePage extends Activity {
 	ArrayList<ServiceMess> messages;
 	ArrayList<HashMap<String, Object>> messHashMaps=new ArrayList<HashMap<String,Object>>();
 	boolean isNew=false;
-	Declare_w declare;
+	DiancanwApp declare;
 	MessageListAdapter messageListAdapter;
 	NotifiReceiver receiver;
 	@Override
@@ -41,7 +41,7 @@ public class ServicePage extends Activity {
 		setContentView(R.layout.servicepage);
 		
 		messListView=(ListView)findViewById(R.id.MessList);
-		declare=(Declare_w)getApplicationContext();
+		declare=(DiancanwApp)getApplicationContext();
 		
 		messages=declare.messArrayList;
 		InitMessageList();
